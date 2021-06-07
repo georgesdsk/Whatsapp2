@@ -1,14 +1,17 @@
+package Vista;
+
 import java.util.Scanner;
 
 public class Menu {
 
 
 
-    private String MENSAJE_REGISTRO = "Introduce un login unico para tu usuario";
-    private String LOGIN_EXISTE = "Este login ya esta en uso";
-    private String INTRODUCIR_CONTRASENIA = "Introduce una contrasenia";
-    private String CONTRASENIA_DIFERENTE = "Las contrasenias son diferentes, vuelve a introducirlas";
-    private String REPETIR_CONTRASENIA = "Introduce la contrasenia de nuevo";
+    private String MENSAJE_REGISTRO = "Introduce un LOGIN unico para tu usuario";
+    private String MENSAJE_INICIO = "Introduce el LOGIN";
+    private String LOGIN_EXISTE = "Este login ya esta en uso, introduzca uno mas original";
+    private String INTRODUCIR_CONTRASENIA = "Introduce la contrasenia";
+    private String CONTRASENIA_DIFERENTE = "Las contrasenias son diferentes";
+    private String REPETIR_CONTRASENIA = "Vuelve a introducir la contrasenia";
     private Scanner sc;
 
 
@@ -35,7 +38,7 @@ public class Menu {
 
         return login;
     }
-    º
+
     public String validarConstrasenia(){
 
         String contrasenia;
@@ -58,6 +61,7 @@ public class Menu {
                   incorrecto = true;
                   System.out.println(CONTRASENIA_DIFERENTE);
               }
+
           }while(incorrecto);
 
         return contrasenia;
@@ -73,6 +77,6 @@ public class Menu {
     }
 
 
-
-
+    public String introducirContrasenia() {
+    }
 }

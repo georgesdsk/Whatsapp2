@@ -75,8 +75,9 @@ public class Gestora {
             }
             // si no ha fallado 3 veces es que ha introducido bien el usuario y no va a estar en null
 
-            return usuario;
+
         }
+    return usuario;
     }
 
 
@@ -155,27 +156,72 @@ public class Gestora {
 
         ResultSet solicitudes = null;
         boolean hayResultados;
+        int solicitudEligida, idEmisor;
+        String loginEmisor = null;
+
 
         try {
-            solicitudes = bbdd.verSolicitudes(usuario);
+            solicitudes = bbdd.verSolicitudes(usuario); // el receptor de las solicitudes
         } catch (SQLException throwables) {
             menu.errorVerSolicitudes();
         }
 
-        if (hayResultados = solicitudes.next()){// si ha dado resultado la consulta
-
+        if (hayResultados = solicitudes.first()){// si ha dado resultado la consulta
             do {
+                solicitudEligida = menu.imprimirYEligirDeResultSet(solicitudes); // entero de donde esta la solicitud entre todas
+                solicitudes.absolute(solicitudEligida);// ponemos el cursor sobre la solicitud elegida
 
-                menu.imprimirYEligirDeResultSet(solicitudes);
-            }while(menu.seguir() && );
+                idEmisor = solicitudes.getInt("ID"); // podria salir como u.idemisor
+                loginEmisor = solicitudes.getString("Login");
+
+                if (menu.aceptarOcancelarSolicitud(loginEmisor)){ //si acepta la solicitud
+                    bbdd.aceptarSolicitud(idEmisor, usuario.getId());
+                }else{
+                    bbdd.denegarSolicitud(idEmisor, usuario.getId());
+                }
+
+                hayResultados = solicitudes.next();
+            }while(menu.seguir() && hayResultados);
+        }
+        
+        if(!hayResultados){
+            menu.noHaySolicitudes();
+        }
+    }
 
 
+    public void crearNuevoChat(Usuario usuario) throws SQLException {
+        //primero con quien desea hacer el chat
+        //como se va a llamar el chat
+        
+        ResultSet usuarios = null;
+        boolean hayResultados = false;
+        int usuarioElegido = 0, idUsuarioElegido = 0;
+        String nombreChat;
 
+        try {
+            usuarios = bbdd.getAmigos(usuario);
+        } catch (SQLException throwables) {
+            menu.errorViendoAmigos();
+        }
+
+        if (hayResultados = usuarios.first()) {// si ha dado resultado la consulta
+            usuarioElegido =  menu.imprimirYEligirDeResultSet(usuarios);
+            usuarios.absolute(usuarioElegido);//ponemos le cursor sobre el usuario elegido
+
+            nombreChat = menu.introducirNombreChat();
+            //todo insertar en la base de datos el chat con los dos usuarios y el nombre.... despues, abrir ese chat parar enviar un mensaje(otro metodo)
+            bbdd.crearNuevoChat(usuario.getId(), idUsuarioElegido, nombreChat);
+
+        }else{
+            menu.noTienesAmigos();
         }
 
 
 
     }
+
+
 
 
 

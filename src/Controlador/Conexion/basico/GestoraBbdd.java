@@ -2,12 +2,14 @@ package Controlador.Conexion.basico;
 
 import Controlador.Clases.Usuario;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.io.FileReader;
+import java.sql.*;
+import java.util.Properties;
 
 public class GestoraBbdd {
+
+    private Properties p = null;
+    private Connection conexionBaseDatos = null;
 
 
     private String CONSULTA_LOGIN = " Select * from Usuario where login=";
@@ -20,7 +22,16 @@ public class GestoraBbdd {
             "ON U.ID = S.IDEmisor" +
             "  WHERE S.IDReceptor=";
 
+    private String ACEPTAR_SOLICITUD = "EXEC AceptarSolicitud(";
+    private String DENEGAR_SOLICITUD = "EXEC DenegarSolicitud(";
+    private String GET_AMIGOS = "SELECT IDEmisor FROM UsuarioAmigo where IDReceptor= ";
+    private String GET_AMIGOS_JOIN = " JOIN SELECT IDReceptor FROM UsuarioAmigo where IDEmisor=";
+
     public GestoraBbdd() {
+        p = new Properties();
+
+       // p.load(new FileReader((PROPERTIES))); // PROP RUTA DE DONDE ESTA EL ARCHIVO
+       // conexionBaseDatos = DriverManager.getConnection(p.getProperty("sourceUrl"),p.getProperty("nombre"), p.getProperty("contrasenia") );
     }
 
     private ResultSet hacerConsulta(String consulta) throws SQLException { //dentro de cada metodo especificare el tipo de excepcion
@@ -28,6 +39,7 @@ public class GestoraBbdd {
         Connection conexionBaseDatos = Conexion.getConexion(); // utilizo mi clase Controlador.Conexion, donde esta inicializada la bbdd, tan solo da el acceso
         Statement sentencia = conexionBaseDatos.createStatement(); // mirar los prepared statement
         ResultSet resultado = sentencia.executeQuery(consulta); // resultset.deleteRow() borra
+        sentencia.close();
 
         return resultado;
 
@@ -112,4 +124,33 @@ public class GestoraBbdd {
        return hacerConsulta(VER_SOLICITUDES + usuario.getId());// te devolvera el login y el id del solicitante ya que en el programa ya tendremos al receptor
 
     }
+
+    public void aceptarSolicitud(int idEmisor, int  idReceptor) throws SQLException {
+
+        hacerConsulta(ACEPTAR_SOLICITUD+ idEmisor+','+idReceptor+')');
+
+    }
+
+    public void denegarSolicitud(int idEmisor, int  idReceptor) throws SQLException {
+
+        hacerConsulta(DENEGAR_SOLICITUD+ idEmisor+','+idReceptor+')');
+
+    }
+
+
+    public ResultSet getAmigos(Usuario usuario) throws SQLException {
+
+        return hacerConsulta(GET_AMIGOS+usuario.getId()+GET_AMIGOS_JOIN+usuario.getId());
+
+    }
+
+
+    public void crearNuevoChat(int id, int idUsuarioElegido, String nombreChat) {
+
+        hacerConsulta()
+
+    }
 }
+
+
+

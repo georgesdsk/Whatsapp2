@@ -124,4 +124,24 @@ public class Menu {
 
     public boolean seguir() {
     }
+
+
+
+    public boolean aceptarOcancelarSolicitud(String login) {
+
+
+    
+    }
+
+    public void noHaySolicitudes() {
+    }
+
+    public void errorViendoAmigos() {
+    }
+
+    public void noTienesAmigos() {
+    }
+
+    public String introducirNombreChat() {
+    }
 }

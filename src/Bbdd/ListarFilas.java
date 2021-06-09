@@ -1,8 +1,6 @@
-package Controlador.Conexion.basico;
+package Bbdd;
 import java.sql.*;
 import java.sql.Connection;
-import java.sql.DriverManager;
-
 
 
 public class ListarFilas {

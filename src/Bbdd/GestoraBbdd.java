@@ -1,8 +1,7 @@
-package Controlador.Conexion.basico;
+package Bbdd;
 
-import Controlador.Clases.Usuario;
+import Modelo.Clases.Usuario;
 
-import java.io.FileReader;
 import java.sql.*;
 import java.util.Properties;
 
@@ -24,8 +23,10 @@ public class GestoraBbdd {
 
     private String ACEPTAR_SOLICITUD = "EXEC AceptarSolicitud(";
     private String DENEGAR_SOLICITUD = "EXEC DenegarSolicitud(";
-    private String GET_AMIGOS = "SELECT IDEmisor FROM UsuarioAmigo where IDReceptor= ";
+    private String GET_AMIGOS = "SELECT IDEmisor FROM UsuarioAmigo where IDReceptor= "; // se podria solucionas con preparedStatment
     private String GET_AMIGOS_JOIN = " JOIN SELECT IDReceptor FROM UsuarioAmigo where IDEmisor=";
+    private String NUEVO_CHAT = "exec PR_CrearNuevoChat(";
+    private String HABLAR_CHAT = "exec PR_EnivarMensaje(";
 
     public GestoraBbdd() {
         p = new Properties();
@@ -39,7 +40,8 @@ public class GestoraBbdd {
         Connection conexionBaseDatos = Conexion.getConexion(); // utilizo mi clase Controlador.Conexion, donde esta inicializada la bbdd, tan solo da el acceso
         Statement sentencia = conexionBaseDatos.createStatement(); // mirar los prepared statement
         ResultSet resultado = sentencia.executeQuery(consulta); // resultset.deleteRow() borra
-        sentencia.close();
+        sentencia.close();//todo que cosas hay que cerrar???
+        resultado.close();
 
         return resultado;
 
@@ -62,7 +64,7 @@ public class GestoraBbdd {
         Usuario usuario = null;
 
 
-        resultado = hacerConsulta(CONSULTA_LOGIN+ login + CONSULTA_CONTRASENIA + contrasenhia);
+        resultado = hacerConsulta(CONSULTA_LOGIN+ login + CONSULTA_CONTRASENIA + contrasenhia +')' );
 
         if (resultado.next()) { //si tiene contenido, mirar si mira solo si existe el siguiente o el actual
 
@@ -90,7 +92,7 @@ public class GestoraBbdd {
 
 
         try {
-            resultado = hacerConsulta(CONSULTA_LOGIN+login );
+            resultado = hacerConsulta(CONSULTA_LOGIN+login +')' );
 
             if (resultado.next()){ // si hay resultado, construimos el objeto
                 usuario = new Usuario(login, resultado.getInt("ID") );
@@ -121,7 +123,7 @@ public class GestoraBbdd {
 
     public ResultSet verSolicitudes(Usuario usuario) throws SQLException {
 
-       return hacerConsulta(VER_SOLICITUDES + usuario.getId());// te devolvera el login y el id del solicitante ya que en el programa ya tendremos al receptor
+       return hacerConsulta(VER_SOLICITUDES + usuario.getId()+')' );// te devolvera el login y el id del solicitante ya que en el programa ya tendremos al receptor
 
     }
 
@@ -140,14 +142,20 @@ public class GestoraBbdd {
 
     public ResultSet getAmigos(Usuario usuario) throws SQLException {
 
-        return hacerConsulta(GET_AMIGOS+usuario.getId()+GET_AMIGOS_JOIN+usuario.getId());
+        return hacerConsulta(GET_AMIGOS+usuario.getId()+GET_AMIGOS_JOIN+usuario.getId()+')' );
 
     }
 
 
-    public void crearNuevoChat(int id, int idUsuarioElegido, String nombreChat) {
+    public int crearNuevoChat(int id, int idUsuarioElegido, String nombreChat) throws SQLException {
 
-        hacerConsulta()
+       return hacerConsulta(NUEVO_CHAT+id+','+idUsuarioElegido+','+nombreChat+')').getInt(1) ;//todo SALIDA MALA, tiene que devolver un entero
+    }
+
+
+    public void hablarAlChat(String mensaje, int idUsuario, int idChat) throws SQLException {
+
+        hacerConsulta(HABLAR_CHAT +mensaje+','+idUsuario+ ','+idChat+')' );
 
     }
 }

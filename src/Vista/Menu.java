@@ -77,7 +77,7 @@ public class Menu {
 
     public int imprimirYEligirDeResultSet(ResultSet rs){
 
-
+        return 0;
 
     }
  //rs.absolute(5); // moves the cursor to the fifth row of rs
@@ -93,6 +93,7 @@ public class Menu {
 
 
     public boolean registrarse() {
+        return false;
     }
 
     public void errorDeInicio() {
@@ -105,9 +106,11 @@ public class Menu {
     }
 
     public String introducirLoginSolicitud() {
+        return "";
     }
 
     public boolean busquedaSinEfecto() {
+        return true;
     }
 
     public void errorEnviandoSolicitud() {
@@ -123,13 +126,14 @@ public class Menu {
     }
 
     public boolean seguir() {
+        return true;
     }
 
 
 
     public boolean aceptarOcancelarSolicitud(String login) {
 
-
+        return true;
     
     }
 
@@ -143,5 +147,9 @@ public class Menu {
     }
 
     public String introducirNombreChat() {
+        return "true";
+    }
+
+    public String introducirMensaje() {
     }
 }

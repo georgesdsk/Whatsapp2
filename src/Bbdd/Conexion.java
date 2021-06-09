@@ -1,4 +1,4 @@
-package Controlador.Conexion.basico;
+package Bbdd;
 
 import java.sql.*;
 
@@ -11,10 +11,17 @@ public class Conexion {
         //propiedadesConexion.put("useUnicode","true");
         //propiedadesConexion.put("characterEncoding","utf8");
 
-        String url="jdbc:sqlserver://localhost;databaseName=ACDAT;user=amazon;password=allavoy;";
+     //   String url=                             //"jdbc:sqlserver://localhost:1433;databaseName=Whatsapp2;integratedSecurity=true";
+
         // Connection es una interface, no una clase
-        Connection conexionBaseDatos = DriverManager.getConnection(url); //, propiedadesConexion
-        
+        Connection conexionBaseDatos =DriverManager.getConnection(
+                "jdbc:sqlserver://localhost:1433;integratedSecurity=true" // ;databaseName=AlmacenesLeo
+
+
+
+        );
+
+
         return conexionBaseDatos; 
     }
     public static void cerrar ( ResultSet rs ) throws SQLException {

@@ -1,4 +1,4 @@
-package Controlador.Clases;
+package Modelo.Clases;
 
 
 /**

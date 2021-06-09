@@ -1,6 +1,6 @@
 /*
 
-package Controlador.Conexion.basico;
+package basico;
 import conexionBD.*;
 import java.sql.*;
 

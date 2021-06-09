@@ -1,11 +1,9 @@
 package Controlador;
 
-import Controlador.Clases.Usuario;
-import Controlador.Conexion.basico.GestoraBbdd;
+import Modelo.Clases.Usuario;
+import Bbdd.GestoraBbdd;
 import Vista.Menu;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -196,7 +194,7 @@ public class Gestora {
         
         ResultSet usuarios = null;
         boolean hayResultados = false;
-        int usuarioElegido = 0, idUsuarioElegido = 0;
+        int usuarioElegido = 0, idUsuarioElegido = 0, idChat = 0;
         String nombreChat;
 
         try {
@@ -209,17 +207,23 @@ public class Gestora {
             usuarioElegido =  menu.imprimirYEligirDeResultSet(usuarios);
             usuarios.absolute(usuarioElegido);//ponemos le cursor sobre el usuario elegido
 
-            nombreChat = menu.introducirNombreChat();
-            //todo insertar en la base de datos el chat con los dos usuarios y el nombre.... despues, abrir ese chat parar enviar un mensaje(otro metodo)
-            bbdd.crearNuevoChat(usuario.getId(), idUsuarioElegido, nombreChat);
+            nombreChat = menu.introducirNombreChat(); // todo controlar que le nombre del chat sea unico
 
+             idChat = bbdd.crearNuevoChat(usuario.getId(), idUsuarioElegido, nombreChat);
+             hablarAlChat(usuario, idChat);
         }else{
             menu.noTienesAmigos();
         }
-
-
-
     }
+
+    public void hablarAlChat(Usuario usuario, int idChat) throws SQLException {
+
+        String mensaje = menu.introducirMensaje();
+
+        bbdd.hablarAlChat(mensaje, usuario.getId(), idChat);
+    }
+
+
 
 
 

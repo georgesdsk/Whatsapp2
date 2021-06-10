@@ -151,5 +151,9 @@ public class Menu {
     }
 
     public String introducirMensaje() {
+        return "d";
+    }
+
+    public void escribirMensajesChat(ResultSet mensajesChat) {
     }
 }

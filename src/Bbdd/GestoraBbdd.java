@@ -5,6 +5,10 @@ import Modelo.Clases.Usuario;
 import java.sql.*;
 import java.util.Properties;
 
+
+//todo Ver metodo mensajes Pendientes
+// todo
+
 public class GestoraBbdd {
 
     private Properties p = null;
@@ -27,6 +31,10 @@ public class GestoraBbdd {
     private String GET_AMIGOS_JOIN = " JOIN SELECT IDReceptor FROM UsuarioAmigo where IDEmisor=";
     private String NUEVO_CHAT = "exec PR_CrearNuevoChat(";
     private String HABLAR_CHAT = "exec PR_EnivarMensaje(";
+    private String VER_MENSAJES_CHAT = "Select U.Login, M.Mensaje FROM Usuario as U" +
+                                        "INNER JOIN Mensaje as M" +
+                                        "ON M.IDUsuario = U.ID" +
+                                        "WHERE M.IDChat = ";
 
     public GestoraBbdd() {
         p = new Properties();
@@ -156,6 +164,20 @@ public class GestoraBbdd {
     public void hablarAlChat(String mensaje, int idUsuario, int idChat) throws SQLException {
 
         hacerConsulta(HABLAR_CHAT +mensaje+','+idUsuario+ ','+idChat+')' );
+
+    }
+
+
+    public ResultSet getMensajesChat( int idChat) throws SQLException {
+
+        return hacerConsulta(VER_MENSAJES_CHAT +idChat);
+    }
+
+
+    //mostrara el nombre de todos los chat abiertos del usuario, todo numero de mensajes pendientes
+
+    public void verChatsUsuarioConMensajesPendientes(Usuario usuario) {
+
 
     }
 }

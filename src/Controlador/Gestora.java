@@ -224,6 +224,22 @@ public class Gestora {
     }
 
 
+    // enviara a menu todos los mensajes con su respectivo nombre de usuario de todo el chat
+    // cuando un usuario se meta en un chat se le mostrara esto
+    public void  verMensajesChat(int idChat) throws SQLException {
+
+        menu.escribirMensajesChat(bbdd.getMensajesChat(idChat));
+
+    }
+
+    //esto se mostrara siempre que un usuario inicie la sesion
+    public void verChatsUsuario(Usuario usuario){
+
+        bbdd.verChatsUsuario(usuario);
+
+    }
+
+
 
 
 

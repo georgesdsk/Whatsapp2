@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="sqljdbc_9.2.1.0_enu">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../sqljdbc_9.2.1.0_enu.zip!/" />
+      <root url="jar://$PROJECT_DIR$/sqljdbc_9.2/enu/mssql-jdbc-9.2.1.jre15.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

@@ -1,9 +1,9 @@
 package Controlador;
 
 import Modelo.Clases.Usuario;
-import Bbdd.GestoraBbdd;
 import Vista.Menu;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -11,7 +11,7 @@ import java.sql.SQLException;
  * Esta clase se va a responsabilizar del manejo de datos en java.
  */
 /**
- *      Nombre de la clase: Controlador.Gestora
+ *      Nombre de la clase: Controlador.Chat
  *      Funcion: Va a controlar toodo el flujo de datos del programa, la administracion de las funcionalidades del programa
  * inicio de sesion, creacion de nuevos usuarios, y el acceso a todas las funcionalidades de los usuarios mediante llamadas
  * a sus metodos
@@ -24,89 +24,17 @@ import java.sql.SQLException;
 //PARA REGISTRAR UN USUARIO PRIMERO VA A MIRAR SI YA EXISTE UNO
 
 
-
-public class Gestora {
+public class Chat {
 
 
     private Menu menu;
     private GestoraBbdd bbdd;
 
 
-    public Gestora() {
+    public Chat() throws IOException, SQLException { //TODO CONTROL EXCEPCION
         menu = new Menu();
         GestoraBbdd bbdd= new GestoraBbdd();
 
-    }
-
-    /**
-     * Entrada: nada
-     * Salida: usuario con el que se haya entrado o null si no se ha entrado
-     * Precondiciones: la conexion con base de datos debe de estar activa
-     * Postcondiciones: se repetira 3 veces hasta que el usuario introduzca una contraseña y usuario correcto
-     */
-    public Usuario iniciarSesion() throws SQLException {
-
-        Usuario usuario = null;
-
-        String login = menu.introducirLogin();
-        String contrasenhia = menu.introducirContrasenia();
-
-        int contadorFallos = 0;
-
-        try {
-
-            usuario = bbdd.iniciarSesion(login, contrasenhia);
-
-            while (contadorFallos < 3 && usuario == null) {// //todo implementar la forma de salir
-                menu.sesionIncorrecta();
-                login = menu.introducirLogin();
-                contrasenhia = menu.introducirContrasenia();
-                contadorFallos++;
-            }
-        } catch (SQLException exc) {
-            menu.errorDeInicio();// todo
-        }
-
-        if (contadorFallos < 3) { // si falla 3 veces le da la posibilidad de crear un nuevo usuario
-            if (menu.registrarse()) {//todo
-                registrarUsuario();
-            }
-            // si no ha fallado 3 veces es que ha introducido bien el usuario y no va a estar en null
-
-
-        }
-    return usuario;
-    }
-
-
-    /**
-     * Entradas:
-     * Salidas:
-     * PRecondiciones:
-     * Postcondiciones:
-     */
-
-    public void registrarUsuario(){
-
-
-        String login = menu.introducirLogin();
-        String contrasenia;
-
-        boolean loginCogido = bbdd.usuariodelLogin(login) !=null; // si existe otro usuario, se repite la peticion
-
-        while (loginCogido) {  // se va a repetir mientras existan usuario con el mismo nombre, es decir nuilo
-            login = menu.introducirLogin();
-            menu.loginExiste();
-            loginCogido = bbdd.usuariodelLogin(login) !=null; //
-        }
-
-        contrasenia = menu.validarConstrasenia();
-
-        try {
-            bbdd.nuevoUsuario(login, contrasenia);
-        } catch (SQLException throwables) {
-            menu.errorDeRegistro();
-        }
     }
 
 
@@ -115,14 +43,24 @@ public class Gestora {
 
         boolean seguir = true;
         String login = menu.introducirLoginSolicitud();
-        Usuario usuarioSolicitud = bbdd.usuariodelLogin(login); //el usuario al que va la solicitud
+        Usuario usuarioSolicitud = null; //el usuario al que va la solicitud
+
+        try {
+            usuarioSolicitud = bbdd.usuarioDelLogin(login);
+        } catch (SQLException throwables) {
+           menu.errorAlMirarLogins();
+        }
 
         while (seguir && usuarioSolicitud== null){ // se repite hasta que el usuario no encuentre a otro usuario o diga que no quire seguir
 
             if (menu.busquedaSinEfecto()){
 
                 login = menu.introducirLoginSolicitud();
-                usuarioSolicitud = bbdd.usuariodelLogin(login);
+                try {
+                    usuarioSolicitud = bbdd.usuarioDelLogin(login);
+                } catch (SQLException throwables) {
+                    menu.errorAlMirarLogins();
+                }
 
             }else{
                 seguir = false;// el usuario se ha desistido
@@ -223,19 +161,32 @@ public class Gestora {
         bbdd.hablarAlChat(mensaje, usuario.getId(), idChat);
     }
 
+    /**
+     * enviara a menu todos los mensajes con su respectivo nombre de usuario de todo el chat
+      cuando un usuario se meta en un chat se le mostrara esto
+     * Precondiciones: ni usuario ni idchat, pueden ser nulos
+     * @param idChat
+     * @param usuario
+     * @throws SQLException
+     */
+    //
+    public void  verMensajesChat(int idChat, Usuario usuario) throws SQLException {
 
-    // enviara a menu todos los mensajes con su respectivo nombre de usuario de todo el chat
-    // cuando un usuario se meta en un chat se le mostrara esto
-    public void  verMensajesChat(int idChat) throws SQLException {
-
-        menu.escribirMensajesChat(bbdd.getMensajesChat(idChat));
+        menu.escribirMensajesChat(bbdd.getMensajesChat(idChat, usuario));
 
     }
 
     //esto se mostrara siempre que un usuario inicie la sesion
-    public void verChatsUsuario(Usuario usuario){
+    public void verChatsUsuario(Usuario usuario) throws SQLException {
 
-        bbdd.verChatsUsuario(usuario);
+         bbdd.verChatsUsuario(usuario);
+
+    }
+
+    public static void main(String[] args) throws SQLException, IOException {
+
+        GestoraBbdd bbdd= new GestoraBbdd();
+        bbdd.nuevoUsuario("'hola3'", "'hola2'");
 
     }
 

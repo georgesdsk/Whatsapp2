@@ -1,3 +1,4 @@
+
 USE [Whatsapp2]
 GO
 /****** Object:  UserDefinedFunction [dbo].[FN_IDdelNombre]    Script Date: 09/06/2021 9:51:31 ******/
@@ -251,7 +252,7 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE v  PROCEDURE [dbo].[PR_AgregarSolicitud](@IDEmisor smallint, @IDReceptor smallint)
+CREATE or PROCEDURE [dbo].[PR_AgregarSolicitud](@IDEmisor smallint, @IDReceptor smallint)
 AS BEGIN
 	INSERT INTO Solicitud VALUES (@IDEmisor, @IDReceptor)
 END
@@ -320,7 +321,7 @@ GO
 COMMIT
 
 GO
-CREATE FUNCTION FN_MensajesPendientes(@idUsuario smallint, @IDChat smallint)
+CREATE or alter FUNCTION FN_MensajesPendientes(@idUsuario smallint, @IDChat smallint)
 RETURNS INT AS BEGIN
 
 	Declare @NumMensajes as int
@@ -334,3 +335,12 @@ RETURNS INT AS BEGIN
 
 end
 go
+
+
+
+CREATE LOGIN raul2 with password='raul2',
+DEFAULT_DATABASE=Whatsapp2
+USE Whatsapp2
+CREATE USER raul2 FOR LOGIN raul2
+GRANT EXECUTE, INSERT, UPDATE, DELETE,
+SELECT TO raul2

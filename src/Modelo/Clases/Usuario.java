@@ -26,4 +26,13 @@ public class Usuario {
     public String getLogin() {
         return login;
     }
+
+
+    @Override
+    public String toString() {
+        return "Usuario{" +
+                "login='" + login + '\'' +
+                ", id=" + id +
+                '}';
+    }
 }

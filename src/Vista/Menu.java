@@ -11,6 +11,8 @@ public class Menu {
     private static final String MENSAJE_ELIGIR_CHAT = "Elige el chat en el que quiere meterse:";
     private static final String NO_TIENE_CHATS = "No tienes chats abiertos, crea alguno para chatear";
     private static final String NO_TIENE_AMIGOS = "No tiene amigos, anhade laguno para chatear con el";
+    private static final String ESCRIBIR = "Escribe(F para salir):";
+    private static final String MENSAJE_SOLICITUDES = "Elige una solicitud para aceptarla/cancelarla como amigo:";
     private String MENSAJE_REGISTRO = "Introduce un login unico para tu usuario";
     private String MENSAJE_INTRODUCIR_CONTRASENIA = "Introduce la contrasenhia de su usuario: ";
     private String LOGIN_EXISTE = "Este login ya esta en uso";
@@ -106,6 +108,13 @@ public class Menu {
 
     }
 
+
+    /**
+     * 
+     * @param rs
+     * @return int que indica la posicion del amigo en el resultset
+     * @throws SQLException
+     */
     public int mostrarYEligirAmigo(ResultSet rs) throws SQLException {
 
 
@@ -113,11 +122,9 @@ public class Menu {
         int contAmigos = 1;
         int amigo = 0; // el numero que indica el chat en el que se quiere meter el usuario
         System.out.println(MENSAJE_AMIGOS);
-
-
-
+        
             while(rs.next()){
-                nombreAmigo = rs.getString("CH.Nombre");
+                nombreAmigo = rs.getString("Login");
                 contAmigos++;
                 System.out.println(contAmigos+") "+nombreAmigo);
             }
@@ -199,10 +206,15 @@ public class Menu {
     }
 
     public String introducirMensaje() {
-        return "d";
+        System.out.println(ESCRIBIR);
+        return sc.nextLine();
     }
 
     public void escribirMensajesChat(ResultSet mensajesChat) {
+
+
+
+
     }
 
     public void errorAlMirarLogins() {
@@ -244,6 +256,34 @@ public class Menu {
         }
 
         return afirmativo;
+
+    }
+
+    public void noTieneChats() {
+        System.out.println(NO_TIENE_CHATS);
+    }
+
+
+    public void chatNoTieneMensajes() {
+    }
+
+    public int mostraYEligirSolicitud(ResultSet solicitudes) throws SQLException {
+
+        String nombreAmigo = null;
+        int contSolicitudes = 1;
+        int solicitud = 0; //
+        System.out.println(MENSAJE_SOLICITUDES);
+
+        while(solicitudes.next()){
+            nombreAmigo = solicitudes.getString("Login");
+            contSolicitudes++;
+            System.out.println(contSolicitudes+") "+nombreAmigo);
+        }
+
+        solicitud = validarNumeroEntre(0,contSolicitudes);
+
+        return solicitud ;// si devuelve 0 es que no tiene todavia chats
+
 
     }
 }

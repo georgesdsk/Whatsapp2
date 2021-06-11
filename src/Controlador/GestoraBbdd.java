@@ -32,7 +32,7 @@ public class GestoraBbdd {
     private String INSERTAR_NUEVO_USUARIO = " INSERT INTO Usuario (Login, Contrasenia) VALUES(";
     private String NUEVA_PETICION = "EXEC FN_EnviarPeticionAmistad(";
     private  String VER_SOLICITUDES =
-            "SELECT U.Login, U.ID from USUARIO AS U"+
+            "SELECT U.Login as Login , U.ID as ID from USUARIO AS U"+
             "INNER JOIN SOLICITUDES as S"+
             "ON U.ID = S.IDEmisor" +
             "  WHERE S.IDReceptor=";

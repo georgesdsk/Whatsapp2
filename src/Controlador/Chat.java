@@ -91,20 +91,16 @@ public class Chat {
     public void gestionarSolicitudes(Usuario usuario) throws SQLException {
 
         ResultSet solicitudes = null;
-        boolean hayResultados;
+        boolean hayResultados = true;
         int solicitudEligida, idEmisor;
         String loginEmisor = null;
 
-
-        try {
-            solicitudes = bbdd.verSolicitudes(usuario); // el receptor de las solicitudes
-        } catch (SQLException throwables) {
-            menu.errorVerSolicitudes();
-        }
+        solicitudes = bbdd.verSolicitudes(usuario); // el receptor de las solicitudes
 
         if (hayResultados = solicitudes.first()){// si ha dado resultado la consulta
+
             do {
-                solicitudEligida = menu.imprimirYEligirDeResultSet(solicitudes); // entero de donde esta la solicitud entre todas
+                solicitudEligida = menu.mostraYEligirSolicitud(solicitudes); // entero de donde esta la solicitud entre todas
                 solicitudes.absolute(solicitudEligida);// ponemos el cursor sobre la solicitud elegida
 
                 idEmisor = solicitudes.getInt("ID"); // podria salir como u.idemisor
@@ -115,7 +111,7 @@ public class Chat {
                 }else{
                     bbdd.denegarSolicitud(idEmisor, usuario.getId());
                 }
-
+                solicitudes = bbdd.verSolicitudes(usuario);// volvemos a ver las solicitudes
                 hayResultados = solicitudes.next();
             }while(menu.seguir() && hayResultados);
         }
@@ -142,7 +138,7 @@ public class Chat {
         }
 
         if (hayResultados = usuarios.first()) {// si ha dado resultado la consulta
-            usuarioElegido =  menu.imprimirYEligirDeResultSet(usuarios);
+            usuarioElegido =  menu.mostrarYEligirAmigo(usuarios);
             usuarios.absolute(usuarioElegido);//ponemos le cursor sobre el usuario elegido
 
             nombreChat = menu.introducirNombreChat(); // todo controlar que le nombre del chat sea unico
@@ -154,11 +150,29 @@ public class Chat {
         }
     }
 
+
+    /**
+     * Escribe en un chat hasta que pulse F para salir
+     * @param usuario
+     * @param idChat
+     * @throws SQLException
+     */
+
     public void hablarAlChat(Usuario usuario, int idChat) throws SQLException {
 
-        String mensaje = menu.introducirMensaje();
+        boolean salir = false;
+        String mensaje;
 
-        bbdd.hablarAlChat(mensaje, usuario.getId(), idChat);
+        while(!salir){
+
+            mensaje = menu.introducirMensaje();
+
+            if (mensaje.equals("F")){
+                salir = true;
+            }else{
+                bbdd.hablarAlChat(mensaje, usuario.getId(), idChat);
+            }
+        }
     }
 
     /**
@@ -170,17 +184,40 @@ public class Chat {
      * @throws SQLException
      */
     //
-    public void  verMensajesChat(int idChat, Usuario usuario) throws SQLException {
+    private void  verMensajesChat(int idChat, Usuario usuario) throws SQLException {// le paso el usuario por si en el futuro implemento la funcion de ver los mensajes pendientes
 
-        menu.escribirMensajesChat(bbdd.getMensajesChat(idChat, usuario));
+        ResultSet resultSet = bbdd.getMensajesChat(idChat, usuario);
+
+        if (resultSet.first()){
+            menu.escribirMensajesChat(resultSet);
+        }else{
+            menu.chatNoTieneMensajes();
+        }
+
+
 
     }
 
     //esto se mostrara siempre que un usuario inicie la sesion
     public void verChatsUsuario(Usuario usuario) throws SQLException {
 
-         bbdd.verChatsUsuario(usuario);
+        ResultSet resultSet;
+        int chat = 0;
+        int idChat;
+        
+          resultSet = bbdd.verChatsUsuario(usuario);
 
+          if (resultSet.first()){
+              
+              chat = menu.mostrarYEligirChat(resultSet);
+              resultSet.absolute(chat);
+             verMensajesChat(resultSet.getInt("ID"), usuario);  
+              
+          }else{
+              
+              menu.noTieneChats();
+          }
+          
     }
 
     public static void main(String[] args) throws SQLException, IOException {

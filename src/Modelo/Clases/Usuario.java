@@ -1,6 +1,8 @@
 package Modelo.Clases;
 
 
+import java.util.Objects;
+
 /**
  *      Nombre de la clase: Usuario
  *      Funcionalidad: objeto que guarda y administra la informacion de otros usuarios seguidos, es decir el envio de solicitud
@@ -28,6 +30,8 @@ public class Usuario {
     }
 
 
+
+
     @Override
     public String toString() {
         return "Usuario{" +
@@ -35,4 +39,22 @@ public class Usuario {
                 ", id=" + id +
                 '}';
     }
+
+
+    @Override
+    public boolean equals(Object o) {
+
+        boolean resultado = false;
+
+       if ( o instanceof Usuario){
+           if (((Usuario) o).getId() == this.getId()){
+               resultado = true;
+           }
+       }
+
+       return resultado;
+
+    }
+
+
 }

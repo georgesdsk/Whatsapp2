@@ -30,7 +30,17 @@ public class GestoraBbdd {
     private String CONSULTA_LOGIN = " Select ID,Login from Usuario where Login = ";
     private String CONSULTA_CONTRASENIA = " and contrasenia= ";
     private String INSERTAR_NUEVO_USUARIO = " INSERT INTO Usuario (Login, Contrasenia) VALUES(";
-    private String NUEVA_PETICION = "EXEC FN_EnviarPeticionAmistad(";
+    private String NUEVA_PETICION = "SELECT IDEmisor FROM UsuarioAmigo WHERE ( ? = IDReceptor AND ? = IDEmisor) " +
+            "OR (? = IDEmisor AND ? = IDReceptor)  ";
+
+   private String amigoExiste1 = "SELECT IDEmisor FROM UsuarioAmigo WHERE IDEmisor = ";
+    String amigoExiste2= " AND IDReceptor= ";
+    String amigoExiste3= " OR IDEmisor = ";
+    String amigoExiste5= " AND IDReceptor= ";
+
+    private String INSERTAR_AMISTAD = "INSERT INTO UsuarioAmigo(IDReceptor, IDEmisor) values(";
+    private String INSERTAR_SOLICITUD = "INSERT INTO Solicitud(IDReceptor, IDEmisor) values( ";
+
     private  String VER_SOLICITUDES =
             "SELECT U.Login as Login , U.ID as ID from USUARIO AS U"+
             "INNER JOIN SOLICITUDES as S"+
@@ -80,6 +90,8 @@ public class GestoraBbdd {
         //resultado.close();
         return resultado;
     }
+
+
 
     private void actualizar(String actualizacion) throws SQLException {
         Statement sentencia = conexionBaseDatos.createStatement();
@@ -132,7 +144,7 @@ public class GestoraBbdd {
 
             resultado = hacerConsulta(CONSULTA_LOGIN+login );
 
-            if (resultado!= null && resultado.next()){ // si hay resultado, construimos el objeto
+            if ( resultado.next()){ // si hay resultado, construimos el objeto
                 usuario = new Usuario(login, resultado.getInt("ID") );
             }
 
@@ -147,11 +159,40 @@ public class GestoraBbdd {
     }
 
 //todo _____________________________________________________________
-    public boolean enviarSolicitud(Usuario emisor, Usuario receptor) throws SQLException {
+    public boolean enviarSolicitud(Usuario emisor, Usuario receptor) throws SQLException { // todo pensar alguna forma de automatizar las preparedStatement
 
-        ResultSet resultado =  hacerConsulta(NUEVA_PETICION+emisor.getId()+','+receptor.getId()+')');// todo ver que devuelve esta funcion, si es una tabla o un numero
+        boolean accionRealizada = false;
+        int idRecepto = receptor.getId();
+        int idEmisor = emisor.getId();
 
-        return  resultado.getInt(1) ==1; //si el resultado es 1 devuelve true
+
+        //  LUEGO SI ES IGUAL QUE EL MIO, LUEGO SI YA SOMO AMIGOS
+
+        if (!emisor.equals(receptor)) { // si no son la misma persona
+           /* PreparedStatement sentencia = conexionBaseDatos.prepareStatement(NUEVA_PETICION); //creamos una sentencia para comporbar si ya son amigos, esta es la sentencia:
+            sentencia.setInt(1, idRecepto);   //"SELECT IDEmisor FROM UsuarioAmigo WHERE ( ? = IDReceptor AND ? = IDEmisor) "
+            // "OR (? = IDEmisor AND ? = IDReceptor)  "
+            sentencia.setInt(2, idEmisor);
+            sentencia.setInt(3, idRecepto);
+            sentencia.setInt(4, idEmisor);
+
+            ResultSet resultado = sentencia.executeQuery();
+*/
+            ResultSet resultado = hacerConsulta(amigoExiste1 +idEmisor + amigoExiste2 +idRecepto + amigoExiste3 + idRecepto + amigoExiste5 + idRecepto);
+
+
+            System.out.println(resultado);
+            if (resultado ==null || !resultado.next() ) {  //eso significa que todavia no son amigos
+                hacerConsulta(INSERTAR_SOLICITUD+idEmisor+','+idRecepto+')');
+                accionRealizada = true;
+            }
+        }else{
+            System.out.println("la misma prersona");
+        }
+        /*
+
+*/
+        return accionRealizada;
 
     }
 

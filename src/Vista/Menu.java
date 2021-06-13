@@ -18,6 +18,10 @@ public class Menu {
     private static final String SESION_INCORRECTA = "Login o la contrasenia incorrectos";
     private static final String MENSAJE_INICIO_CHAT = "Sesion iniciada por:";
     private static final String MENSAJE_MENU_CHAT = "Que desea hacer? \n 1) Ver chats activos \n 2) Nuevo chat \n 3) Buscar amigos \n 4) Ver solicitudes de amistad \n 5) Salir al menu principal \n 6) Salir de la aplicacion";
+    private static final String USUARIO_NOT_FOUND = "No se ha encontrado usuario con el siguiente login, deseas repetir la busqueda?";
+    private static final String AMISTAD_EXISTENTE = "Ya sois amigos";
+    private static final String ACCION_REALIZADA = "ACCION REALIZADA";
+    private static final String ERROR_ENVIANDO_SOLICITUD = "Error enviando la solicitud";
     private String MENSAJE_REGISTRO_LOGIN = "Este es el menu de registro, tiene que introducir un login unico para tu usuario";
     private String MENSAJE_INICIO_SESION =" Introduce su Login:";
     private String MENSAJE_INTRODUCIR_CONTRASENIA = "Introduce su contrasenhia: ";
@@ -197,16 +201,20 @@ public class Menu {
     }
 
     public boolean seguirBusqueda() {
-        return true;
+        System.out.println(USUARIO_NOT_FOUND);
+        return afirmativo();
     }
 
     public void errorEnviandoSolicitud() {
+        System.out.println(ERROR_ENVIANDO_SOLICITUD);
     }
 
     public void solicitudAmistadExistente() {
+        System.out.println(AMISTAD_EXISTENTE);
     }
 
     public void accionRealizada() {
+        System.out.println(ACCION_REALIZADA);
     }
 
     public void errorVerSolicitudes() {

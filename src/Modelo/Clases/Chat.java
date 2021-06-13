@@ -54,7 +54,7 @@ public class Chat {
 
             if (menu.seguirBusqueda()){
 
-                loginReceptor = menu.introducirLoginSolicitud();
+                loginReceptor = menu.introducirLogin();
                 try {
                     receptor = bbdd.usuarioDelLogin(loginReceptor);
                 } catch (SQLException throwables) {
@@ -76,8 +76,12 @@ public class Chat {
                 }
             } catch (SQLException throwables) {
                 menu.errorEnviandoSolicitud();
+                System.out.println(throwables.getMessage());
             }
+        }else{
+            System.out.println("no se sigue");
         }
+
     }
 
 

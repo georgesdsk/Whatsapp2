@@ -28,37 +28,30 @@ public class InicioSesion {
      * Precondiciones: la conexion con base de datos debe de estar activa
      * Postcondiciones: se repetira 3 veces hasta que el usuario introduzca una contraseña y usuario correcto
      */
-    public Usuario iniciarSesion() throws SQLException {
+    public Usuario iniciarSesion(String login, String contrasenhia ) throws SQLException {
 
         Usuario usuario = null;
-
-        String login = menu.introducirLogin();
-        String contrasenhia = menu.introducirContrasenia();
 
         int contadorFallos = 0;
 
         try {
+            usuario = bbdd.iniciarSesion(login, contrasenhia); // si el usuario da nulo es que no existe
 
-            usuario = bbdd.iniciarSesion(login, contrasenhia);
-
-            while (contadorFallos < 3 && usuario == null) {// //todo implementar la forma de salir
+            while (contadorFallos < 2 && usuario == null) {// //todo implementar la forma de salir
+                contadorFallos++;
                 menu.sesionIncorrecta();
                 login = menu.introducirLogin();
                 contrasenhia = menu.introducirContrasenia();
-                contadorFallos++;
+                usuario = bbdd.iniciarSesion(login, contrasenhia);
             }
         } catch (SQLException exc) {
+            System.out.println( exc.getErrorCode());
+            System.out.println( exc.getSQLState());
+            System.out.println( exc.toString());
+            System.out.println( exc.getMessage());
             menu.errorDeInicio();// todo
         }
 
-        if (contadorFallos < 3) { // si falla 3 veces le da la posibilidad de crear un nuevo usuario
-            if (menu.registrarse()) {//todo
-                registrarUsuario();
-            }
-            // si no ha fallado 3 veces es que ha introducido bien el usuario y no va a estar en null
-
-
-        }
         return usuario;
     }
 
@@ -70,10 +63,10 @@ public class InicioSesion {
      * Postcondiciones:
      */
 
-    public void registrarUsuario(){
+    public void registrarUsuario(String login){
 
 
-        String login = menu.introducirLogin();
+
         String contrasenia;
 
         boolean loginCogido = false; // si existe otro usuario, se repite la peticion

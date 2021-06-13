@@ -27,8 +27,8 @@ public class GestoraBbdd {
 
             ///////////////////////////////CONSULTAS
 
-    private String CONSULTA_LOGIN = " Select * from Usuario as U where U.Login = ";
-    private String CONSULTA_CONTRASENIA = " and contrasenia=";
+    private String CONSULTA_LOGIN = " Select ID,Login from Usuario where Login = ";
+    private String CONSULTA_CONTRASENIA = " and contrasenia= ";
     private String INSERTAR_NUEVO_USUARIO = " INSERT INTO Usuario (Login, Contrasenia) VALUES(";
     private String NUEVA_PETICION = "EXEC FN_EnviarPeticionAmistad(";
     private  String VER_SOLICITUDES =
@@ -47,6 +47,11 @@ public class GestoraBbdd {
                                         "INNER JOIN USUARIO AS U" +
                                         "ON U.ID = UA.IDReceptor" +
                                         " where IDEmisor= ";
+
+    private String VER_CHATS = " SELECT CH.Nombre, CH.ID from Chat AS CH " +
+            " INNER JOIN ChatUsuario as CU " +
+            " ON CU.IDChat = CH.ID " +
+            " WHERE CU.IDUsuario = ";
 
     private String NUEVO_CHAT = "exec PR_CrearNuevoChat(";
     private String HABLAR_CHAT = "exec PR_EnivarMensaje(";
@@ -68,7 +73,8 @@ public class GestoraBbdd {
 
 
     private ResultSet hacerConsulta(String consulta) throws SQLException { //dentro de cada metodo especificare el tipo de excepcion
-        Statement sentencia = conexionBaseDatos.createStatement(); // mirar los prepared statement
+        Statement sentencia = conexionBaseDatos.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+                ResultSet.CONCUR_UPDATABLE); // mirar los prepared statement
         ResultSet resultado = sentencia.executeQuery(consulta); // resultset.deleteRow() borra
         //sentencia.close();//todo cerrar al finalizar el programa
         //resultado.close();
@@ -84,12 +90,6 @@ public class GestoraBbdd {
         Statement sentencia = conexionBaseDatos.createStatement();
         sentencia.execute(accion);
     }
-
-    private ResultSet ejecutarConResultado(String accion) throws SQLException {
-        Statement sentencia = conexionBaseDatos.createStatement();
-         return sentencia.executeQuery(accion);
-    }
-
 
     /**
      * PRecondiciones:
@@ -107,7 +107,7 @@ public class GestoraBbdd {
 
         resultado = hacerConsulta(CONSULTA_LOGIN+ login + CONSULTA_CONTRASENIA + contrasenhia  );
 
-        if (resultado.next()) { //si tiene contenido, mirar si mira solo si existe el siguiente o el actual
+        if (resultado.first()) { //si tiene contenido, mirar si mira solo si existe el siguiente o el actual
             usuario = new Usuario(resultado.getString("Login"), resultado.getInt("ID"));
 
         }
@@ -130,9 +130,9 @@ public class GestoraBbdd {
         ResultSet resultado = null;
         Usuario usuario = null;
 
-            resultado = hacerConsulta(CONSULTA_LOGIN+login +')' );
+            resultado = hacerConsulta(CONSULTA_LOGIN+login );
 
-            if (resultado.next()){ // si hay resultado, construimos el objeto
+            if (resultado!= null && resultado.next()){ // si hay resultado, construimos el objeto
                 usuario = new Usuario(login, resultado.getInt("ID") );
             }
 
@@ -227,9 +227,7 @@ public class GestoraBbdd {
 
         int idChat = 0;
         String nombreChat = null;
-        ResultSet resultSet =  hacerConsulta("SELECT CH.Nombre, CH.ID from Chat AS CH" +
-                    "INNER JOIN ChatUsuario as CU " +
-                    "ON CU.IDChat = CH.ID");
+        ResultSet resultSet =  hacerConsulta(VER_CHATS+ usuario.getId());
         /*
         while(resultSet.next()){
             idChat = resultSet.getInt("CH.ID");

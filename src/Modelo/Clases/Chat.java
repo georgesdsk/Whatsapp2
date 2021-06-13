@@ -1,9 +1,8 @@
-package Controlador;
+package Modelo.Clases;
 
-import Modelo.Clases.Usuario;
+import Controlador.GestoraBbdd;
 import Vista.Menu;
 
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -11,7 +10,7 @@ import java.sql.SQLException;
  * Esta clase se va a responsabilizar del manejo de datos en java.
  */
 /**
- *      Nombre de la clase: Controlador.Chat
+ *      Nombre de la clase: Modelo.Clases.Chat
  *      Funcion: Va a controlar toodo el flujo de datos del programa, la administracion de las funcionalidades del programa
  * inicio de sesion, creacion de nuevos usuarios, y el acceso a todas las funcionalidades de los usuarios mediante llamadas
  * a sus metodos
@@ -31,33 +30,33 @@ public class Chat {
     private GestoraBbdd bbdd;
 
 
-    public Chat() throws IOException, SQLException { //TODO CONTROL EXCEPCION
+    public Chat(GestoraBbdd bbdd) { //TODO CONTROL EXCEPCION
         menu = new Menu();
-        GestoraBbdd bbdd= new GestoraBbdd();
+        this.bbdd =bbdd ; //la instancia para comunicarme con ella
 
     }
 
 
 
-    public void enviarSolicitud(Usuario emisor, Usuario receptor){
+    public void enviarSolicitud(Usuario emisor, String loginReceptor){
 
         boolean seguir = true;
-        String login = menu.introducirLoginSolicitud();
-        Usuario usuarioSolicitud = null; //el usuario al que va la solicitud
+        Usuario receptor = null; //el usuario al que va la solicitud
 
         try {
-            usuarioSolicitud = bbdd.usuarioDelLogin(login);
+            receptor = bbdd.usuarioDelLogin(loginReceptor);
         } catch (SQLException throwables) {
            menu.errorAlMirarLogins();
+
         }
 
-        while (seguir && usuarioSolicitud== null){ // se repite hasta que el usuario no encuentre a otro usuario o diga que no quire seguir
+        while (seguir && receptor== null){ // se repite hasta que el usuario no encuentre a otro usuario o diga que no quire seguir
 
-            if (menu.busquedaSinEfecto()){
+            if (menu.seguirBusqueda()){
 
-                login = menu.introducirLoginSolicitud();
+                loginReceptor = menu.introducirLoginSolicitud();
                 try {
-                    usuarioSolicitud = bbdd.usuarioDelLogin(login);
+                    receptor = bbdd.usuarioDelLogin(loginReceptor);
                 } catch (SQLException throwables) {
                     menu.errorAlMirarLogins();
                 }
@@ -115,8 +114,8 @@ public class Chat {
                 hayResultados = solicitudes.next();
             }while(menu.seguir() && hayResultados);
         }
-        
-        if(!hayResultados){
+
+        if(!hayResultados){ // lo he hecho de esta forma para que sea recursivo hasta que el usuario se canse o no haya solicitudes
             menu.noHaySolicitudes();
         }
     }
@@ -137,7 +136,7 @@ public class Chat {
             menu.errorViendoAmigos();
         }
 
-        if (hayResultados = usuarios.first()) {// si ha dado resultado la consulta
+        if (usuarios != null) {// si ha dado resultado la consulta
             usuarioElegido =  menu.mostrarYEligirAmigo(usuarios);
             usuarios.absolute(usuarioElegido);//ponemos le cursor sobre el usuario elegido
 
@@ -158,7 +157,7 @@ public class Chat {
      * @throws SQLException
      */
 
-    public void hablarAlChat(Usuario usuario, int idChat) throws SQLException {
+    private void hablarAlChat(Usuario usuario, int idChat) throws SQLException {
 
         boolean salir = false;
         String mensaje;
@@ -207,33 +206,16 @@ public class Chat {
         
           resultSet = bbdd.verChatsUsuario(usuario);
 
-          if (resultSet.first()){
-              
+          if (resultSet!= null && resultSet.first()){
               chat = menu.mostrarYEligirChat(resultSet);
               resultSet.absolute(chat);
              verMensajesChat(resultSet.getInt("ID"), usuario);  
               
           }else{
-              
               menu.noTieneChats();
           }
           
     }
-
-    public static void main(String[] args) throws SQLException, IOException {
-
-        GestoraBbdd bbdd= new GestoraBbdd();
-        bbdd.nuevoUsuario("'hola3'", "'hola2'");
-
-    }
-
-
-
-
-
-
-
-
 
 
 

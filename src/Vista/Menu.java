@@ -13,8 +13,14 @@ public class Menu {
     private static final String NO_TIENE_AMIGOS = "No tiene amigos, anhade laguno para chatear con el";
     private static final String ESCRIBIR = "Escribe(F para salir):";
     private static final String MENSAJE_SOLICITUDES = "Elige una solicitud para aceptarla/cancelarla como amigo:";
-    private String MENSAJE_REGISTRO = "Introduce un login unico para tu usuario";
-    private String MENSAJE_INTRODUCIR_CONTRASENIA = "Introduce la contrasenhia de su usuario: ";
+    private static final String MENSAJE_BIENVENIDA = "Bienvenido a Whatsapp2, un chat gratuito, mejor que la competencia, que desea hacer?";
+    private static final String INICIO_O_REGISTRO = "1) Iniciar sesion \n 2) Registarse \n 3)para salir ";
+    private static final String SESION_INCORRECTA = "Login o la contrasenia incorrectos";
+    private static final String MENSAJE_INICIO_CHAT = "Sesion iniciada por:";
+    private static final String MENSAJE_MENU_CHAT = "Que desea hacer? \n 1) Ver chats activos \n 2) Nuevo chat \n 3) Buscar amigos \n 4) Ver solicitudes de amistad \n 5) Salir al menu principal \n 6) Salir de la aplicacion";
+    private String MENSAJE_REGISTRO_LOGIN = "Este es el menu de registro, tiene que introducir un login unico para tu usuario";
+    private String MENSAJE_INICIO_SESION =" Introduce su Login:";
+    private String MENSAJE_INTRODUCIR_CONTRASENIA = "Introduce su contrasenhia: ";
     private String LOGIN_EXISTE = "Este login ya esta en uso";
     private String INTRODUCIR_CONTRASENIA = "Introduce una contrasenia";
     private String CONTRASENIA_DIFERENTE = "Las contrasenias son diferentes, vuelve a introducirlas";
@@ -22,9 +28,27 @@ public class Menu {
     private Scanner sc;
 
 
-    public Menu() {
+    public  Menu() {
         sc = new Scanner(System.in);
     }
+
+
+    public int menuInicio(){
+
+        System.out.println(MENSAJE_BIENVENIDA);
+        System.out.println(INICIO_O_REGISTRO);
+        return validarNumeroEntre(1,3);
+    }
+
+    public int menuChat(String nombre){
+        System.out.println(MENSAJE_INICIO_CHAT +nombre);
+        System.out.println(MENSAJE_MENU_CHAT);
+        return validarNumeroEntre(1,6);
+
+    }
+
+
+
 
 
     /**
@@ -34,16 +58,27 @@ public class Menu {
      * @return login
      */
 
-    public String introducirLogin(){
+    private String introducirTexto(){
 
-        String login;
+        String texto;
 
         do {
-            System.out.println(MENSAJE_REGISTRO);
-            login =  sc.nextLine();
-        }while(login.length() == 0);
+            texto = "'"+sc.nextLine()+"'" ;
+        }while(texto.length() == 0);
 
-        return login;
+        return texto;
+    }
+
+    public String registrarLogin(){
+
+        System.out.println(MENSAJE_REGISTRO_LOGIN);
+        return introducirTexto();
+
+    }
+
+    public String introducirLogin(){
+        System.out.println(MENSAJE_INICIO_SESION);
+        return introducirTexto();
     }
 
     public String validarConstrasenia(){
@@ -51,18 +86,14 @@ public class Menu {
         String contrasenia;
         String contrasenia2;
         boolean incorrecto = false;
-
-
+        
           do {
-              do {
                   System.out.println(INTRODUCIR_CONTRASENIA);
-                  contrasenia = sc.nextLine();
-              } while (contrasenia.length() == 0);
+                  contrasenia = introducirTexto();
 
-              do {
                   System.out.println(REPETIR_CONTRASENIA);
-                  contrasenia2 = sc.nextLine();
-              } while (contrasenia2.length() == 0);
+                  contrasenia2 = introducirTexto();
+
 
               if (!contrasenia.equals(contrasenia2)){
                   incorrecto = true;
@@ -76,7 +107,7 @@ public class Menu {
 
     public String introducirContrasenia(){
         System.out.println(MENSAJE_INTRODUCIR_CONTRASENIA);
-        return sc.nextLine();
+        return introducirTexto();
     }
 
     /**
@@ -147,7 +178,7 @@ public class Menu {
     }
 
 
-    public boolean registrarse() {
+    public boolean quiereRegistrarse() {
         return false;
     }
 
@@ -155,6 +186,7 @@ public class Menu {
     }
 
     public void sesionIncorrecta() {
+        System.out.println(SESION_INCORRECTA);
     }
 
     public void errorDeRegistro() {
@@ -164,7 +196,7 @@ public class Menu {
         return "";
     }
 
-    public boolean busquedaSinEfecto() {
+    public boolean seguirBusqueda() {
         return true;
     }
 
@@ -199,6 +231,7 @@ public class Menu {
     }
 
     public void noTienesAmigos() {
+        System.out.println(NO_TIENE_AMIGOS);
     }
 
     public String introducirNombreChat() {

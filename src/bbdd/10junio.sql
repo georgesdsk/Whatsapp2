@@ -337,6 +337,61 @@ end
 go
 
 
+USE [Whatsapp2]
+GO
+/****** Object:  StoredProcedure [dbo].[FN_EnviarPeticionAmistad]    Script Date: 13/06/2021 16:23:49 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+go
+
+ALTER procedure [dbo].[FN_EnviarPeticionAmistad] @IDEmisor smallint, @IDReceptor smallint, @Resultado bit OUTPUT
+AS BEGIN 	
+			
+			
+				IF EXISTS (SELECT * FROM UsuarioAmigo							-- si ya esta en la tabla usuarioAmigo, tambien se podria con isNull
+							WHERE (@IDReceptor = IDReceptor AND @IDEmisor = IDEmisor) 
+							OR  (@IDReceptor =IDEmisor  AND @IDEmisor = IDReceptor))
+				BEGIN
+			
+					RETURN 0
+				END
+				ELSE BEGIN
+						INSERT INTO Solicitud VALUES (@IDEmisor, @IDReceptor)
+						RETURN 1
+				END
+
+			END
+		
+END
+go
+
+SELECT IDEmisor FROM UsuarioAmigo WHERE ( 1 = IDReceptor AND 2 = IDEmisor) 
+             OR (1 = IDEmisor AND 2 = IDReceptor)
+
+
+			 insert into UsuarioAmigo values (1,2)
+			 
+select * from Solicitud
+
+select *from Usuario
+
+insert into Solicitud values (1,2)
+
+GO--PRIMERO HACER UNA Y LUEGO OTRA Y JUNTARLAS
+	SELECT UA.IDEmisor AS EMISOR, U.Login as Login FROM UsuarioAmigo AS UA
+                                   INNER JOIN USUARIO AS U 
+                                     ON U.ID = UA.IDEMISOR 
+									 INNER JOIN UsuarioAmigo AS UA2
+									ON UA2.
+GO
+
+
+select * from UsuarioAmigo
+
+SELECT *FROM Solicitud
 
 CREATE LOGIN raul2 with password='raul2',
 DEFAULT_DATABASE=Whatsapp2

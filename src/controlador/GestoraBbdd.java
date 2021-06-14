@@ -1,7 +1,7 @@
-package Controlador;
+package controlador;
 
 
-import Modelo.Clases.Usuario;
+import modelo.Usuario;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -39,39 +39,35 @@ public class GestoraBbdd {
     String amigoExiste5= " AND IDReceptor= ";
 
     private String INSERTAR_AMISTAD = "INSERT INTO UsuarioAmigo(IDReceptor, IDEmisor) values(";
-    private String INSERTAR_SOLICITUD = "INSERT INTO Solicitud(IDReceptor, IDEmisor) values( ";
+    private String INSERTAR_SOLICITUD = "INSERT INTO Solicitud(IDEmisor,IDReceptor) values( ";
 
     private  String VER_SOLICITUDES =
-            "SELECT U.Login as Login , U.ID as ID from USUARIO AS U"+
-            "INNER JOIN SOLICITUDES as S"+
-            "ON U.ID = S.IDEmisor" +
-            "  WHERE S.IDReceptor=";
-    private String ACEPTAR_SOLICITUD = "EXEC AceptarSolicitud(";
-    private String DENEGAR_SOLICITUD = "EXEC DenegarSolicitud(";
-    private String GET_AMIGOS = "  SELECT UA.IDEmisor as ID, U.Login as Login FROM UsuarioAmigo" +
-                                    "INNER JOIN USUARIO AS U" +
-                                    "ON U.ID = UA.IDEMISOR" +
-                                    " where IDReceptor= "; // se podria solucionas con preparedStatment
+            " SELECT U.Login as Login , U.ID as ID from USUARIO AS U "+
+            " INNER JOIN SOLICITUD as S "+
+            " ON U.ID = S.IDEmisor " +
+            "  WHERE S.IDReceptor= ";
+    private String ACEPTAR_SOLICITUD = "EXEC PR_AceptarSolicitud ";
+    private String DENEGAR_SOLICITUD = "EXEC PR_DenegarSolicitud ";
+    private String GET_AMIGOS = " Select * from FN_AMIGOS (";
 
-    private String GET_AMIGOS_JOIN = " JOIN SELECT UA.IDReceptor as ID, U.Login as Login FROM UsuarioAmigo" +
-                                        "INNER JOIN USUARIO AS U" +
-                                        "ON U.ID = UA.IDReceptor" +
-                                        " where IDEmisor= ";
 
-    private String VER_CHATS = " SELECT CH.Nombre, CH.ID from Chat AS CH " +
+    private String VER_CHATS =
+            " SELECT CH.ID, CH.Nombre from Chat AS CH " +
             " INNER JOIN ChatUsuario as CU " +
             " ON CU.IDChat = CH.ID " +
             " WHERE CU.IDUsuario = ";
 
-    private String NUEVO_CHAT = "exec PR_CrearNuevoChat(";
-    private String HABLAR_CHAT = "exec PR_EnivarMensaje(";
-    private String VER_MENSAJES_CHAT = "Select U.Login, M.Mensaje, M.ID FROM Usuario as U" +
-                                        "INNER JOIN Mensaje as M" +
-                                        "ON M.IDUsuario = U.ID" +
-                                        "WHERE M.IDChat = ";
+    private String NUEVO_CHAT = " {call PR_CrearNuevoChat(?,?,?,?) }";
+    private String HABLAR_CHAT = " exec PR_EnviarMensaje ";
+    private String VER_MENSAJES_CHAT = " Select U.Login, M.Mensaje, M.ID FROM Usuario as U " +
+                                        " INNER JOIN Mensaje as M " +
+                                        " ON M.IDUsuario = U.ID " +
+                                        " WHERE M.IDChat = ";
     private String PONER_ULTIMO_MENSAJE= "UPDATE ChatUsuario set IDUltimoMensaje = ";
     private String CONDICION_ULTIMO_MENSAJE = " WHERE IDUsuario=";
     private String CONDICION_ULTIMO_MENSAJE2 = " AND IDChat =";
+
+
 
     public GestoraBbdd() throws IOException, SQLException {
         p = new Properties();
@@ -91,8 +87,6 @@ public class GestoraBbdd {
         return resultado;
     }
 
-
-
     private void actualizar(String actualizacion) throws SQLException {
         Statement sentencia = conexionBaseDatos.createStatement();
         sentencia.executeUpdate(actualizacion);
@@ -109,8 +103,6 @@ public class GestoraBbdd {
      * @param  login,  (String)
      * @return el usuario o null si no se ha encontrado
      */
-
-
 
     public Usuario iniciarSesion(String login, String contrasenhia) throws SQLException {// ha habido un error con el inicio de sesion
 
@@ -152,13 +144,30 @@ public class GestoraBbdd {
 
     }
 
-    public void nuevoUsuario(String login, String contrasenia) throws SQLException { //todo controlar la excepcion
+    /**
+     *     /**
+     * Entradas: Login y contrasenia
+     * Precondiciones: conexion con la base de datos
+     * Postcondiciones: inserta nuevo usuario en la base de datos
+     * @param login
+     * @param contrasenia
+     * @throws SQLException
+     */
 
+    public void nuevoUsuario(String login, String contrasenia) throws SQLException {
         ejecutar(INSERTAR_NUEVO_USUARIO+login+','+contrasenia+')');
-
     }
 
-//todo _____________________________________________________________
+    /**
+     *      * Entradas: Usuario emisor y receptor
+     *      * Precondiciones: conexion con la base de datos
+     *      * Postcondiciones: si ya no son amigos, y los datos estan bien se anhadira una nueva solicitud de amistad
+     * @param emisor
+     * @param receptor
+     * @return
+     * @throws SQLException
+     */
+
     public boolean enviarSolicitud(Usuario emisor, Usuario receptor) throws SQLException { // todo pensar alguna forma de automatizar las preparedStatement
 
         boolean accionRealizada = false;
@@ -169,74 +178,110 @@ public class GestoraBbdd {
         //  LUEGO SI ES IGUAL QUE EL MIO, LUEGO SI YA SOMO AMIGOS
 
         if (!emisor.equals(receptor)) { // si no son la misma persona
-           /* PreparedStatement sentencia = conexionBaseDatos.prepareStatement(NUEVA_PETICION); //creamos una sentencia para comporbar si ya son amigos, esta es la sentencia:
-            sentencia.setInt(1, idRecepto);   //"SELECT IDEmisor FROM UsuarioAmigo WHERE ( ? = IDReceptor AND ? = IDEmisor) "
-            // "OR (? = IDEmisor AND ? = IDReceptor)  "
-            sentencia.setInt(2, idEmisor);
-            sentencia.setInt(3, idRecepto);
-            sentencia.setInt(4, idEmisor);
 
-            ResultSet resultado = sentencia.executeQuery();
-*/
-            ResultSet resultado = hacerConsulta(amigoExiste1 +idEmisor + amigoExiste2 +idRecepto + amigoExiste3 + idRecepto + amigoExiste5 + idRecepto);
+            ResultSet resultado = hacerConsulta(amigoExiste1 + idEmisor + amigoExiste2 + idRecepto + amigoExiste3 + idRecepto + amigoExiste5 + idRecepto);
 
 
-            System.out.println(resultado);
-            if (resultado ==null || !resultado.next() ) {  //eso significa que todavia no son amigos
-                hacerConsulta(INSERTAR_SOLICITUD+idEmisor+','+idRecepto+')');
+            if (!resultado.first()) {  //eso significa que todavia no son amigos
+                ejecutar(INSERTAR_SOLICITUD + idEmisor + ',' + idRecepto + ')');
                 accionRealizada = true;
             }
-        }else{
-            System.out.println("la misma prersona");
         }
-        /*
-
-*/
         return accionRealizada;
 
     }
 
+    /**
+     *  * Entradas: Usuario
+     *      * Precondiciones: conexion con la base de datos
+     *      * Postcondiciones: devolvera un resultset con todas las solicitudes
+     * @param usuario
+     * @return
+     * @throws SQLException
+     */
+
     public ResultSet verSolicitudes(Usuario usuario) throws SQLException {
-
-       return hacerConsulta(VER_SOLICITUDES + usuario.getId()+')' );// te devolvera el login y el id del solicitante ya que en el programa ya tendremos al receptor
-
+       return hacerConsulta(VER_SOLICITUDES + usuario.getId() );// te devolvera el login y el id del solicitante ya que en el programa ya tendremos al receptor
     }
+
+    /**
+     *  * Entradas: idEmisor, idReceptor
+     *      * Precondiciones: conexion con la base de datos
+     *      * Postcondiciones: inserta en la amistad la solicitud
+     * @param idEmisor
+     * @param idReceptor
+     * @throws SQLException
+     */
 
     public void aceptarSolicitud(int idEmisor, int  idReceptor) throws SQLException {
-
-        hacerConsulta(ACEPTAR_SOLICITUD+ idEmisor+','+idReceptor+')');
-
+        ejecutar(ACEPTAR_SOLICITUD+ idEmisor+','+idReceptor);
     }
+
+    /**
+     *  * Entradas: idEmisor, idReceptor
+     *      * Precondiciones: conexion con la base de datos
+     *      * Postcondiciones: borra la solicitud
+     * @param idEmisor
+     * @param idReceptor
+     * @throws SQLException
+     */
 
     public void denegarSolicitud(int idEmisor, int  idReceptor) throws SQLException {
-
-        hacerConsulta(DENEGAR_SOLICITUD+ idEmisor+','+idReceptor+')');
-
+       ejecutar(DENEGAR_SOLICITUD+ idEmisor+','+idReceptor);
     }
 
+    /**
+     *       Entradas: usuario
+     *      Precondiciones: conexion con la base de datos
+     *      Postcondiciones: resultset con los amigos del usuario
+     * @param usuario
+     * @return
+     * @throws SQLException
+     */
 
     public ResultSet getAmigos(Usuario usuario) throws SQLException {
+        return hacerConsulta( GET_AMIGOS +usuario.getId() +')' );
+    }
 
-        return hacerConsulta(GET_AMIGOS+usuario.getId()+GET_AMIGOS_JOIN+usuario.getId()+')' );
+    /**
+     *      Entradas: idUsuario, idUsuarioElegido, String nombreChat
+     *      Precondiciones: conexion con la base de datos
+     *      Postcondiciones: inserta en los chats
+     *
+     * @param idUsuario
+     * @param idUsuarioElegido
+     * @param nombreChat
+     * @return
+     * @throws SQLException
+     */
 
+    public int crearNuevoChat(int idUsuario, int idUsuarioElegido, String nombreChat) throws SQLException {
+        CallableStatement sentencia = conexionBaseDatos.prepareCall(NUEVO_CHAT);
+        sentencia.setInt(1,idUsuario);
+        sentencia.setInt(2,idUsuarioElegido);
+        sentencia.setString(3,nombreChat);
+        sentencia.registerOutParameter(4, java.sql.Types.SMALLINT);
+        sentencia.execute();
+
+       return sentencia.getInt(4);//todo SALIDA MALA, tiene que devolver un entero
     }
 
 
-    public int crearNuevoChat(int id, int idUsuarioElegido, String nombreChat) throws SQLException {
-
-       return hacerConsulta(NUEVO_CHAT+id+','+idUsuarioElegido+','+nombreChat+')').getInt(1) ;//todo SALIDA MALA, tiene que devolver un entero
-    }
-
-
+    /**
+     *      Precondiciones: conexion con la base de datos
+     *      Postcondiciones: habla por un chat dado
+     * @param mensaje
+     * @param idUsuario
+     * @param idChat
+     * @throws SQLException
+     */
     public void hablarAlChat(String mensaje, int idUsuario, int idChat) throws SQLException {
-
-        hacerConsulta(HABLAR_CHAT +mensaje+','+idUsuario+ ','+idChat+')' );
-
+        ejecutar(HABLAR_CHAT +mensaje+','+idUsuario+ ','+idChat );
     }
 
     /**
      *
-     * Precondiciones: ni usuario ni idchat, pueden ser nulos
+     * Precondiciones: id usuario id idchat, pueden ser nulos
      * Postcondiciones: se devolveran todos los mensajes de un chat ademas actualizandose el ultimoMensaje leido de ese chat del usuario
      * @param idChat
      * @param usuario
@@ -245,13 +290,11 @@ public class GestoraBbdd {
      */
 
     public ResultSet getMensajesChat( int idChat, Usuario usuario) throws SQLException {
-
         int idUltimoMensaje;
-
         ResultSet resultSet = hacerConsulta(VER_MENSAJES_CHAT +idChat);
-        resultSet.last(); // ponemos el cursor sobre el utlimo
-        idUltimoMensaje = resultSet.getInt("M.ID");
-        actualizar(PONER_ULTIMO_MENSAJE +idUltimoMensaje +CONDICION_ULTIMO_MENSAJE +usuario.getId() +CONDICION_ULTIMO_MENSAJE2 + idChat);
+        //resultSet.last(); // ponemos el cursor sobre el utlimo
+        //idUltimoMensaje = resultSet.getInt("M.ID");
+        //actualizar(PONER_ULTIMO_MENSAJE +idUltimoMensaje +CONDICION_ULTIMO_MENSAJE +usuario.getId() +CONDICION_ULTIMO_MENSAJE2 + idChat);
         return  resultSet;
     }
 /*
@@ -264,8 +307,16 @@ public class GestoraBbdd {
 
     //mostrara el nombre de todos los chat abiertos del usuario, todo numero de mensajes pendientes
 
-    public ResultSet verChatsUsuario(Usuario usuario) throws SQLException { //ConMensajesPendientes
 
+    /**
+     *       Entradas: Usuario
+     *      Precondiciones: conexion con la base de datos
+     *      Postcondiciones: resultset con todos los chats
+     * @param usuario
+     * @return
+     * @throws SQLException
+     */
+    public ResultSet verChatsUsuario(Usuario usuario) throws SQLException { //ConMensajesPendientes
         int idChat = 0;
         String nombreChat = null;
         ResultSet resultSet =  hacerConsulta(VER_CHATS+ usuario.getId());

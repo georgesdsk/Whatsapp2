@@ -1,13 +1,13 @@
-package Modelo.Clases;
+package modelo;
 
-import Controlador.GestoraBbdd;
-import Vista.Menu;
+import controlador.GestoraBbdd;
+import vista.Menu;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Esta clase se va a responsabilizar del manejo de datos en java.
+ * Esta clase se va a responsabilizar del manejo de datos de todos los chats en java.
  */
 /**
  *      Nombre de la clase: Modelo.Clases.Chat
@@ -18,27 +18,30 @@ import java.sql.SQLException;
 
 // PODRAS ABRIR LOS CHATS QUE QUIERAS CON QUIEN QUIERAS PARA TENER COSAS PENDIENTE
 
-//Metodo de seleccion de una fila de una tabla, controlada por contador. A que chat desea hablar? con que amigo desea abrir conversacion?
-                                                                        //Que solicitud desea aceptar/denegar?
-//PARA REGISTRAR UN USUARIO PRIMERO VA A MIRAR SI YA EXISTE UNO
-
 
 public class Chat {
-
 
     private Menu menu;
     private GestoraBbdd bbdd;
 
-
-    public Chat(GestoraBbdd bbdd) { //TODO CONTROL EXCEPCION
+    public Chat(GestoraBbdd bbdd) {
         menu = new Menu();
         this.bbdd =bbdd ; //la instancia para comunicarme con ella
 
     }
 
 
+    /**
+     *   /**
+     * Entradas: Usuario emisor, String loginReceptor de la solicitud
+     * Precondiciones: el usuario no puede ser nulo
+     * Postcondicion: se enviara la solicitud al receptor si no son la misma persona, y si ya no son amigos o hay una solicitud pendiente entre ellos
+     * @param emisor
+     * @param loginReceptor
+     */
 
-    public void enviarSolicitud(Usuario emisor, String loginReceptor){
+
+    public boolean enviarSolicitud(Usuario emisor, String loginReceptor){
 
         boolean seguir = true;
         Usuario receptor = null; //el usuario al que va la solicitud
@@ -46,8 +49,8 @@ public class Chat {
         try {
             receptor = bbdd.usuarioDelLogin(loginReceptor);
         } catch (SQLException throwables) {
+            throwables.printStackTrace();
            menu.errorAlMirarLogins();
-
         }
 
         while (seguir && receptor== null){ // se repite hasta que el usuario no encuentre a otro usuario o diga que no quire seguir
@@ -60,7 +63,6 @@ public class Chat {
                 } catch (SQLException throwables) {
                     menu.errorAlMirarLogins();
                 }
-
             }else{
                 seguir = false;// el usuario se ha desistido
             }
@@ -75,17 +77,19 @@ public class Chat {
                     menu.accionRealizada();
                 }
             } catch (SQLException throwables) {
+                throwables.printStackTrace();
                 menu.errorEnviandoSolicitud();
-                System.out.println(throwables.getMessage());
+
             }
         }else{
-            System.out.println("no se sigue");
+           menu.saliendoMenuChat();
         }
-
+        return seguir;// si todo se ha hecho correctamente devolvera true
     }
 
 
     /**
+     *  Entradas: Usuario del que quiera saber la info
      * Precondiciones: el usuario tiene que existir, si no devolvera un null
      * Postcondiciones: mostrara el listado de solicitudes del usuario dejandole seleccionar la que quiera para cancelarla o aceptarla
      * @param usuario
@@ -103,6 +107,7 @@ public class Chat {
         if (hayResultados = solicitudes.first()){// si ha dado resultado la consulta
 
             do {
+                solicitudes = bbdd.verSolicitudes(usuario);
                 solicitudEligida = menu.mostraYEligirSolicitud(solicitudes); // entero de donde esta la solicitud entre todas
                 solicitudes.absolute(solicitudEligida);// ponemos el cursor sobre la solicitud elegida
 
@@ -124,6 +129,12 @@ public class Chat {
         }
     }
 
+    /**
+     *  Entradas: Usuario al que quiere crear un hcat
+     * Precondiciones: el usuario tiene que existir, si no devolvera un null
+     * Postcondiciones: si el usuario tiene amigos, eligira uno de ellos para crear el chat
+     * @param usuario
+     */
 
     public void crearNuevoChat(Usuario usuario) throws SQLException {
         //primero con quien desea hacer el chat
@@ -137,13 +148,14 @@ public class Chat {
         try {
             usuarios = bbdd.getAmigos(usuario);
         } catch (SQLException throwables) {
+            System.out.println(throwables.getMessage());
             menu.errorViendoAmigos();
         }
 
-        if (usuarios != null) {// si ha dado resultado la consulta
+        if (usuarios != null && usuarios.first()) {// si ha dado resultado la consulta
             usuarioElegido =  menu.mostrarYEligirAmigo(usuarios);
             usuarios.absolute(usuarioElegido);//ponemos le cursor sobre el usuario elegido
-
+            idUsuarioElegido = usuarios.getInt("ID");
             nombreChat = menu.introducirNombreChat(); // todo controlar que le nombre del chat sea unico
 
              idChat = bbdd.crearNuevoChat(usuario.getId(), idUsuarioElegido, nombreChat);
@@ -155,7 +167,8 @@ public class Chat {
 
 
     /**
-     * Escribe en un chat hasta que pulse F para salir
+     * Postcondiciones: Se hablara a el chat pasado por paramtros por parte del usuario
+     * Precondiciones :Escribe en un chat hasta que pulse F para salir
      * @param usuario
      * @param idChat
      * @throws SQLException
@@ -170,7 +183,7 @@ public class Chat {
 
             mensaje = menu.introducirMensaje();
 
-            if (mensaje.equals("F")){
+            if (mensaje.equals("'F'")){
                 salir = true;
             }else{
                 bbdd.hablarAlChat(mensaje, usuario.getId(), idChat);
@@ -181,7 +194,7 @@ public class Chat {
     /**
      * enviara a menu todos los mensajes con su respectivo nombre de usuario de todo el chat
       cuando un usuario se meta en un chat se le mostrara esto
-     * Precondiciones: ni usuario ni idchat, pueden ser nulos
+     * Precondiciones: id usuario ni idchat, pueden ser nulos
      * @param idChat
      * @param usuario
      * @throws SQLException
@@ -202,6 +215,13 @@ public class Chat {
     }
 
     //esto se mostrara siempre que un usuario inicie la sesion
+    /**
+     *  Entradas: Usuario del que quiera saber los chats
+     * Precondiciones: el usuario tiene que existir
+     * Postcondiciones: mostrara el listado de chats del usuario dejandole seleccionar la que quiera para entrar adentro y mirar los mensajes y escribir
+     * @param usuario
+     */
+
     public void verChatsUsuario(Usuario usuario) throws SQLException {
 
         ResultSet resultSet;
@@ -213,18 +233,14 @@ public class Chat {
           if (resultSet!= null && resultSet.first()){
               chat = menu.mostrarYEligirChat(resultSet);
               resultSet.absolute(chat);
-             verMensajesChat(resultSet.getInt("ID"), usuario);  
+              idChat = resultSet.getInt("ID");
+             verMensajesChat(idChat, usuario);
+             hablarAlChat(usuario,idChat);
               
           }else{
               menu.noTieneChats();
           }
-          
     }
-
-
-
-
-
 }
 
 

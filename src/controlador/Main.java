@@ -1,9 +1,9 @@
-package Controlador;
+package controlador;
 
-import Modelo.Clases.Chat;
-import Modelo.Clases.InicioSesion;
-import Modelo.Clases.Usuario;
-import Vista.Menu;
+import modelo.Chat;
+import modelo.InicioSesion;
+import modelo.Usuario;
+import vista.Menu;
 
 import java.io.IOException;
 import java.sql.SQLException;

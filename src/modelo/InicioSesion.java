@@ -1,8 +1,8 @@
-package Modelo.Clases;
+package modelo;
 
 
-import Controlador.GestoraBbdd;
-import Vista.Menu;
+import controlador.GestoraBbdd;
+import vista.Menu;
 
 import java.sql.SQLException;
 
@@ -57,15 +57,13 @@ public class InicioSesion {
 
 
     /**
-     * Entradas:
-     * Salidas:
-     * PRecondiciones:
-     * Postcondiciones:
+     * Entradas: nada
+     * Salidas: String login
+     * Precondiciones:  la conexion con la base de datos debe estar activa
+     * Postcondiciones: se registrara un usuario en la base de datos con el login y la contrasenia dados
      */
 
     public void registrarUsuario(String login){
-
-
 
         String contrasenia;
 

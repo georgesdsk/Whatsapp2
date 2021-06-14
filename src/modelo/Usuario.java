@@ -1,14 +1,8 @@
-package Modelo.Clases;
+package modelo;
 
-
-import java.util.Objects;
 
 /**
- *      Nombre de la clase: Usuario
- *      Funcionalidad: objeto que guarda y administra la informacion de otros usuarios seguidos, es decir el envio de solicitud
- *  a otros a usuarios, aceptar o cancelar solicitudes, hablar en un char ya abierto o crear uno nuevo
- *      La contraseñá la va a guardar y gestionar esta clase, aunque lo correcto seria que se gestionara mediante
- *      la BBDD
+Clase que guarda la info esencial de cada usuario
  */
 
 public class Usuario {

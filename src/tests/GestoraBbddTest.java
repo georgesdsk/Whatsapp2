@@ -1,5 +1,6 @@
-package controlador;
+package tests;
 
+import controlador.GestoraBbdd;
 import modelo.Solicitud;
 import modelo.Usuario;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 class GestoraBbddTest {
-/*
+
     GestoraBbdd bbdd =  new GestoraBbdd();
     Usuario usuario1 = new Usuario("raul",102);
     Usuario usuario2 = new Usuario("1",104);
@@ -37,7 +38,7 @@ class GestoraBbddTest {
     NO SE PORQUE NO ME RECONOCE EL @BEFOREEACH
      */
 
-/*
+
     @Test
     void iniciarSesionBuena() throws SQLException {
 
@@ -111,6 +112,4 @@ class GestoraBbddTest {
     void cerrarResultSet() {
     }
 }
-/*
- */
-}
+

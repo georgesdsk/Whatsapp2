@@ -1,38 +1,46 @@
 package vista;
 
+import modelo.Chat;
+import modelo.Mensaje;
+import modelo.Solicitud;
+import modelo.Usuario;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Menu {
 
 
     private static final String MENSAJE_AMIGOS ="   \tElige al amigo para chatear:" ;
-    private static final String MENSAJE_ELIGIR_CHAT = " \n\tElige el chat en el que quiere meterse:";
+    private static final String MENSAJE_ELIGIR_CHAT = " \n\tElige el Chat en el que quiere meterse:";
     private static final String NO_TIENE_CHATS = "  No tienes chats abiertos, crea alguno para chatear";
     private static final String NO_TIENE_AMIGOS = " No tiene amigos, anhade laguno para chatear con el";
     private static final String ESCRIBIR = "   \t Escribe(F para salir):";
     private static final String MENSAJE_SOLICITUDES = " \tElige una solicitud para aceptarla/cancelarla como amigo:";
     private static final String MENSAJE_BIENVENIDA = "╔═══════════════════════════════════════════════════════════════════════════════════════╗" +
-                                                    " \n║ Bienvenido a Whatsapp2, un chat gratuito, mejor que la competencia, que desea hacer?  ║\n" +
+                                                    " \n║ Bienvenido a Whatsapp2, un Chat gratuito, mejor que la competencia, que desea hacer?  ║\n" +
                                                     "╚═══════════════════════════════════════════════════════════════════════════════════════╝";
     private static final String INICIO_O_REGISTRO = " \t 1) Iniciar sesion \n\t 2) Registarse \n\t 3) Salir \n ";
     private static final String SESION_INCORRECTA = "   Login o la contrasenia incorrectos";
     private static final String MENSAJE_INICIO_CHAT = "\n ╔══════════════════════════════════════════════════════════════════════════════════════╗" +
             "\n     SESION INICIADA POR: ";
-    private static final String MENSAJE_MENU_CHAT = "\n\tQue desea hacer? \n\t 1) Ver chats activos \n\t 2) Nuevo chat \n\t 3) Buscar amigos \n\t 4) Ver solicitudes de amistad \n\t 5) Salir al menu principal \n\t 6) Salir de la aplicacion\n" +
+    private static final String MENSAJE_MENU_CHAT = "\n\tQue desea hacer? \n\t 1) Ver chats activos \n\t 2) Nuevo Chat \n\t 3) Buscar amigos \n\t 4) Ver solicitudes de amistad \n\t 5) Salir al menu principal \n\t 6) Salir de la aplicacion\n" +
             "╚═══════════════════════════════════════════════════════════════════════════════════════╝\n";
     private static final String USUARIO_NOT_FOUND = "   No se ha encontrado usuario con el siguiente login, deseas repetir la busqueda?";
     private static final String AMISTAD_EXISTENTE = "   Ya sois amigos";
     private static final String ACCION_REALIZADA = "    ACCION REALIZADA";
     private static final String ERROR_ENVIANDO_SOLICITUD = "    Error, Ya sois amigos o ya hay una solicitud pendiente";
     private static final String ERROR_AMIGOS = "    ERROR VIENDO AMIGOS";
-    private static final String CHAT_SIN_MENSAJES = "   El chat no tiene mensajes, escribe el primero";
+    private static final String CHAT_SIN_MENSAJES = "   El Chat no tiene mensajes, escribe el primero";
     private static final String NO_TIENE_SOLICITUDES = "    No tiene solicitudes de amistad, algo esta haciendo mal";
-    private static final String INTRODUCIR_NOMBRE_CHAT = "  Escriba un nombre unico para el Chat";
+    private static final String INTRODUCIR_NOMBRE_CHAT = "  Escriba un nombre unico para el Messenger";
     private static final String SALIENDO_MENU_CHAT = "  Saliendo al menu del CHAT";
     private static final String SALIENDO_MENU_PRINCIPAL = " Saliendo al menu PRINCIPAL";
     private static final String ERROR = "   Ha habido un error con la base de datos, disculpa las molestias";
+    private static final String CHAT_ERROR = "NO PUEDE CREAR UN CHAT CONSIGO MISMO";//TODO
     private String MENSAJE_REGISTRO_LOGIN = "   Este es el menu de registro, tiene que introducir un login unico para tu usuario";
     private String MENSAJE_INICIO_SESION ="\n\tIntroduce su Login:";
     private String MENSAJE_INTRODUCIR_CONTRASENIA = "\tIntroduce su contrasenhia: ";
@@ -210,8 +218,18 @@ public class Menu {
      * @return int posicion del resultado necesario
      * @throws SQLException
      */
-    public int mostrarYEligirAmigo(ResultSet rs) throws SQLException {
-        return mostrarYEligirResultset(rs,LOGIN,MENSAJE_AMIGOS);
+    public Usuario mostrarYEligirAmigo(List<Usuario> amigos) throws SQLException {
+        int resultado, contador = 0;
+
+        for (Usuario usuario: amigos
+        ) {
+            ++contador;
+            System.out.println(contador+") " +usuario.getLogin() );
+
+        }
+        resultado = validarNumeroEntre(1,amigos.size());
+        return amigos.get(resultado-1);
+
     }
 
     /*** Entradas: resultSet
@@ -222,8 +240,19 @@ public class Menu {
      * @throws SQLException
      */
 
-    public int mostraYEligirSolicitud(ResultSet solicitudes) throws SQLException {
-        return mostrarYEligirResultset(solicitudes, LOGIN, MENSAJE_SOLICITUDES);
+    public Solicitud mostraYEligirSolicitud(List<Solicitud> solicitudes) throws SQLException {
+
+
+        int resultado, contador = 0;
+
+        for (Solicitud solicitud : solicitudes
+             ) {
+            ++contador;
+            System.out.println(contador+") " +solicitud.getLoginEmisor() );
+
+        }
+        resultado = validarNumeroEntre(1,solicitudes.size());
+        return solicitudes.get(resultado-1);
     }
 
     /*** Entradas: resultSet
@@ -234,21 +263,26 @@ public class Menu {
      * @throws SQLException
      */
 
-    public int mostrarYEligirChat(ResultSet resultSet) throws SQLException {
-        return  mostrarYEligirResultset(resultSet,NOMBRE, MENSAJE_ELIGIR_CHAT);
+    public Chat mostrarYEligirChat(List<Chat> chats) throws SQLException {
+        int resultado, contador = 0;
+
+        for (Chat chat : chats
+        ) {
+            ++contador;
+            System.out.println(contador+") " +chat.getNombreChat() );
+
+        }
+        resultado = validarNumeroEntre(1,chats.size());
+        return chats.get(resultado-1);
+
     }
-    public void escribirMensajesChat(ResultSet mensajesChat) throws SQLException {
+    public void escribirMensajesChat(List<Mensaje> mensajes) throws SQLException {
+        for (Mensaje mensaje: mensajes
+             ) {
+            System.out.println(mensaje.toString());
 
-        if(mensajesChat.next()){
-            mensajesChat.first();
-            String mensaje = mensajesChat.getString("Mensaje"); // todo escribir los nombres de los usuarios al lado
-            System.out.println(mensaje);
         }
 
-        while(mensajesChat.next()){
-            String mensaje = mensajesChat.getString("Mensaje");
-            System.out.println(mensaje);
-        }
     }
 
 
@@ -400,7 +434,8 @@ public class Menu {
     }
 
     public boolean seguir() {
-        return true;
+        System.out.println("Desea seguir administrando solicitudes?");
+        return afirmativo();
     }
 
     /**
@@ -502,4 +537,8 @@ public class Menu {
     public void saliendoMenuChat() { System.out.println(SALIENDO_MENU_CHAT); }
 
 
+    public void errorCreandoChat() {
+
+        System.out.println(CHAT_ERROR);
+    }
 }

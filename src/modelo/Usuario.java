@@ -41,7 +41,7 @@ public class Usuario {
         boolean resultado = false;
 
        if ( o instanceof Usuario){
-           if (((Usuario) o).getId() == this.getId()){
+           if (((Usuario) o).getLogin().equals(this.getLogin())){
                resultado = true;
            }
        }

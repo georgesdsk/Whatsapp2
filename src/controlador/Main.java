@@ -1,6 +1,5 @@
 package controlador;
 
-import modelo.Chat;
 import modelo.InicioSesion;
 import modelo.Usuario;
 import vista.Menu;
@@ -19,7 +18,10 @@ public class Main {
         GestoraBbdd bbdd = new GestoraBbdd();
         InicioSesion inicioSesion = new InicioSesion(bbdd);
         Menu menu = new Menu();
-        Chat chat = new Chat(bbdd);
+        Messenger messenger = new Messenger(bbdd);
+
+        bbdd.verSolicitudes(new Usuario("", 2));
+
 
 
         do {// flujo de toda la aplicacion
@@ -33,25 +35,19 @@ public class Main {
                     }
                 } else if (eleccionMenuInicio == 2) {
                     inicioSesion.registrarUsuario(menu.introducirLogin());
-
                 }
-
             }
             ;// si es 3 se tiene que salir
 
             if (eleccionMenuInicio == 1) {
-
-               eleccionMenuInicio = accionesMenuChat(menu, usuarioIniciado, chat);
-
+               eleccionMenuInicio = accionesMenuChat(menu, usuarioIniciado, messenger);
             }
-
-
         } while (eleccionMenuInicio < 3);
 
-        //cerrra las conexiones
+        bbdd.cerrarConexion();
 
     }
-        public static int accionesMenuChat( Menu menu, Usuario usuarioIniciado, Chat chat){
+        public static int accionesMenuChat( Menu menu, Usuario usuarioIniciado, Messenger messenger){
 
             int eleccionMenuChat = menu.menuChat(usuarioIniciado.getLogin());// le pasamos el login para que se pueda comunicar bien con el usuario
             int comunicacionMain = 1; // si es 1
@@ -59,34 +55,30 @@ public class Main {
             switch (eleccionMenuChat){
                 case 1 -> {
                     try {
-                        chat.verChatsUsuario(usuarioIniciado);
+                        messenger.verChatsUsuario(usuarioIniciado);
                     } catch (SQLException throwables) {
                         throwables.printStackTrace(); // ver si tiene que enviar algun mensaje
                     }
                 }
                 case 2 -> {
                     try {
-                        chat.crearNuevoChat(usuarioIniciado);
+                        messenger.crearNuevoChat(usuarioIniciado);
                     } catch (SQLException throwables) {
-                        throwables.printStackTrace();
+                        throwables.printStackTrace(); //todo quitar
                     }
                 }
-                case 3->chat.enviarSolicitud(usuarioIniciado, menu.introducirLogin()); // todo mirar el control de excepciones
+                case 3-> messenger.enviarSolicitud(usuarioIniciado, menu.introducirLogin()); // todo mirar el control de excepciones
                 case 4 -> {
                     try {
-                        chat.gestionarSolicitudes(usuarioIniciado);
+                        messenger.gestionarSolicitudes(usuarioIniciado);
                     } catch (SQLException throwables) {
-                        throwables.printStackTrace();
+                        menu.errorViendoAmigos();
                     }
                 }
-                case 5-> comunicacionMain = 2; // salir del chat
+                case 5-> comunicacionMain = 2; // salir del messenger
                 case 6-> comunicacionMain = 3;// salir de la aplicacion
             }
 
             return comunicacionMain;
-
         }
-
-
-
 }

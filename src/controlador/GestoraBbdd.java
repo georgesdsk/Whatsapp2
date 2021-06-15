@@ -1,25 +1,31 @@
 package controlador;
 
 
+import modelo.Chat;
+import modelo.Mensaje;
+import modelo.Solicitud;
 import modelo.Usuario;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**     Hara la conexion con la base de datos y la gestora del programa, es decir este objeto solo trabaja como intermediario o interfaz del programa, sin tener ninguna parte logica en su interior
  *      Al tener la posibilidad de tener solo una sesion abierta en el momento, la conexion con la bbdd se abrirá al abrir el programa y se cerrara al finalizar. Esto significa que en la practica,
  *      en el mundo real, no deberia de funcionar asi
- *
+ *       PD: me he dado cuenta a ultima hora que lo mas optimizado posible seria que en vez
  */
 
 
 //todo Ver metodo mensajes Pendientes
-// todo EliminarUsuario(ver si petan los mensajes de los chats) actualizarUsuario
+
 
 public class GestoraBbdd {
 
+    private static final String BORRAR_USUARIO = "DELETE FROM USUARIO WHERE LOGIN = ";
     private String UBICACION_PROPERTIES = "./src/bbdd/PropiedadesConexion";
     private Properties p = null; // las propiedades con las que se va conectar a la base de datos
     private Connection conexionBaseDatos;
@@ -67,6 +73,7 @@ public class GestoraBbdd {
     private String CONDICION_ULTIMO_MENSAJE = " WHERE IDUsuario=";
     private String CONDICION_ULTIMO_MENSAJE2 = " AND IDChat =";
 
+    private Statement sentencia = null;
 
 
     public GestoraBbdd() throws IOException, SQLException {
@@ -74,26 +81,23 @@ public class GestoraBbdd {
         p.load(new FileReader((UBICACION_PROPERTIES))); // PROP RUTA DE DONDE ESTA EL ARCHIVO
         conexionBaseDatos = DriverManager.getConnection(p.getProperty("sourceUrl"), p.getProperty("nombre"), p.getProperty("contrasenia"));
 
+       this.sentencia = conexionBaseDatos.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
     }
 
 
 
     private ResultSet hacerConsulta(String consulta) throws SQLException { //dentro de cada metodo especificare el tipo de excepcion
-        Statement sentencia = conexionBaseDatos.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-                ResultSet.CONCUR_UPDATABLE); // mirar los prepared statement
+         // mirar los prepared statement
         ResultSet resultado = sentencia.executeQuery(consulta); // resultset.deleteRow() borra
-        //sentencia.close();//todo cerrar al finalizar el programa
-        //resultado.close();
         return resultado;
     }
 
     private void actualizar(String actualizacion) throws SQLException {
-        Statement sentencia = conexionBaseDatos.createStatement();
         sentencia.executeUpdate(actualizacion);
     }
 
     private void ejecutar(String accion) throws SQLException {
-        Statement sentencia = conexionBaseDatos.createStatement();
         sentencia.execute(accion);
     }
 
@@ -115,6 +119,7 @@ public class GestoraBbdd {
             usuario = new Usuario(resultado.getString("Login"), resultado.getInt("ID"));
 
         }
+        resultado.close();
         return usuario;
     }
 
@@ -140,6 +145,7 @@ public class GestoraBbdd {
                 usuario = new Usuario(login, resultado.getInt("ID") );
             }
 
+            resultado.close();
         return usuario;
 
     }
@@ -157,6 +163,19 @@ public class GestoraBbdd {
     public void nuevoUsuario(String login, String contrasenia) throws SQLException {
         ejecutar(INSERTAR_NUEVO_USUARIO+login+','+contrasenia+')');
     }
+    /**
+     *     /**
+     * Entradas: Login
+     * Precondiciones: conexion con la base de datos
+     * Postcondiciones: BORRA EL USUARIO DE LA BASE DE DATOS
+     * @param login
+
+     * @throws SQLException
+     */
+
+    public void borrarUsuario(String login) throws SQLException {
+        ejecutar(BORRAR_USUARIO +login);
+    }
 
     /**
      *      * Entradas: Usuario emisor y receptor
@@ -173,20 +192,21 @@ public class GestoraBbdd {
         boolean accionRealizada = false;
         int idRecepto = receptor.getId();
         int idEmisor = emisor.getId();
-
+        ResultSet resultado = null;
 
         //  LUEGO SI ES IGUAL QUE EL MIO, LUEGO SI YA SOMO AMIGOS
 
         if (!emisor.equals(receptor)) { // si no son la misma persona
-
-            ResultSet resultado = hacerConsulta(amigoExiste1 + idEmisor + amigoExiste2 + idRecepto + amigoExiste3 + idRecepto + amigoExiste5 + idRecepto);
-
+             resultado = hacerConsulta(amigoExiste1 + idEmisor + amigoExiste2 + idRecepto + amigoExiste3 + idRecepto + amigoExiste5 + idRecepto);
 
             if (!resultado.first()) {  //eso significa que todavia no son amigos
                 ejecutar(INSERTAR_SOLICITUD + idEmisor + ',' + idRecepto + ')');
                 accionRealizada = true;
             }
         }
+
+        cerrarResultSet(resultado);
+
         return accionRealizada;
 
     }
@@ -200,34 +220,53 @@ public class GestoraBbdd {
      * @throws SQLException
      */
 
-    public ResultSet verSolicitudes(Usuario usuario) throws SQLException {
-       return hacerConsulta(VER_SOLICITUDES + usuario.getId() );// te devolvera el login y el id del solicitante ya que en el programa ya tendremos al receptor
+    public List<Solicitud> verSolicitudes(Usuario usuario) throws SQLException { // voy a crear el objeto solicitud con los dos ides. Y voy a devolver la lista
+
+       ResultSet rs =  hacerConsulta(VER_SOLICITUDES + usuario.getId() ); // te devolvera el login y el id del solicitante ya que en el programa ya tendremos al receptor
+        String nombre;
+        int idReceptor, idEmisor;
+        List<Solicitud> solicitudes= new ArrayList<Solicitud>();
+
+        if(rs.next()){
+            rs.first();
+           idEmisor = rs.getInt("ID");
+           nombre = rs.getString("Login");
+            solicitudes.add(new Solicitud(idEmisor, usuario.getId(), nombre));
+           while(rs.next()){
+               idEmisor = rs.getInt("ID");
+               nombre = rs.getString("Login");
+               solicitudes.add(new Solicitud(idEmisor, usuario.getId(), nombre));
+            }
+        }
+
+        cerrarResultSet(rs);
+        return solicitudes;
     }
 
     /**
      *  * Entradas: idEmisor, idReceptor
      *      * Precondiciones: conexion con la base de datos
      *      * Postcondiciones: inserta en la amistad la solicitud
-     * @param idEmisor
-     * @param idReceptor
+     * @param solicitud
+
      * @throws SQLException
      */
 
-    public void aceptarSolicitud(int idEmisor, int  idReceptor) throws SQLException {
-        ejecutar(ACEPTAR_SOLICITUD+ idEmisor+','+idReceptor);
+    public void aceptarSolicitud(Solicitud solicitud) throws SQLException {
+        ejecutar(ACEPTAR_SOLICITUD+ solicitud.getIdEmisor()+','+solicitud.getIdReceptor());
     }
 
     /**
      *  * Entradas: idEmisor, idReceptor
      *      * Precondiciones: conexion con la base de datos
      *      * Postcondiciones: borra la solicitud
-     * @param idEmisor
-     * @param idReceptor
+     * @param solicitud
+     *
      * @throws SQLException
      */
 
-    public void denegarSolicitud(int idEmisor, int  idReceptor) throws SQLException {
-       ejecutar(DENEGAR_SOLICITUD+ idEmisor+','+idReceptor);
+    public void denegarSolicitud(Solicitud solicitud) throws SQLException {
+       ejecutar(DENEGAR_SOLICITUD+ solicitud.getIdEmisor()+','+solicitud.getIdReceptor());
     }
 
     /**
@@ -239,8 +278,27 @@ public class GestoraBbdd {
      * @throws SQLException
      */
 
-    public ResultSet getAmigos(Usuario usuario) throws SQLException {
-        return hacerConsulta( GET_AMIGOS +usuario.getId() +')' );
+    public List<Usuario> getAmigos(Usuario usuario) throws SQLException {
+
+        ResultSet rs =  hacerConsulta( GET_AMIGOS +usuario.getId() +')' );
+        List<Usuario> amigos = new ArrayList<Usuario>();
+        int id;
+        String nombre;
+
+        if(rs.next()){
+            rs.first();
+            id = rs.getInt("ID");
+            nombre = rs.getString("Login");
+            amigos.add(new Usuario(nombre, id));
+            while(rs.next()){
+                id = rs.getInt("ID");
+                nombre = rs.getString("Login");
+                amigos.add(new Usuario(nombre, id));
+            }
+        }
+        cerrarResultSet(rs);
+        return amigos;
+
     }
 
     /**
@@ -263,13 +321,13 @@ public class GestoraBbdd {
         sentencia.registerOutParameter(4, java.sql.Types.SMALLINT);
         sentencia.execute();
 
-       return sentencia.getInt(4);//todo SALIDA MALA, tiene que devolver un entero
+       return sentencia.getInt(4);
     }
 
 
     /**
      *      Precondiciones: conexion con la base de datos
-     *      Postcondiciones: habla por un chat dado
+     *      Postcondiciones: habla por un Chat dado
      * @param mensaje
      * @param idUsuario
      * @param idChat
@@ -282,20 +340,37 @@ public class GestoraBbdd {
     /**
      *
      * Precondiciones: id usuario id idchat, pueden ser nulos
-     * Postcondiciones: se devolveran todos los mensajes de un chat ademas actualizandose el ultimoMensaje leido de ese chat del usuario
+     * Postcondiciones: se devolveran todos los mensajes de un Chat ademas actualizandose el ultimoMensaje leido de ese Chat del usuario
      * @param idChat
      * @param usuario
-     * @return Resultset con todos los mensajes del chat
+     * @return Resultset con todos los mensajes del Chat
      * @throws SQLException
      */
 
-    public ResultSet getMensajesChat( int idChat, Usuario usuario) throws SQLException {
-        int idUltimoMensaje;
-        ResultSet resultSet = hacerConsulta(VER_MENSAJES_CHAT +idChat);
+    public List<Mensaje> getMensajesChat(int idChat, Usuario usuario) throws SQLException {
+        //int idUltimoMensaje;
+
+        List<Mensaje> mensajes = new ArrayList<Mensaje>();
+        ResultSet rs = hacerConsulta(VER_MENSAJES_CHAT +idChat);
+        String login, mensaje;
+
+        if(rs.next()){
+            rs.first();
+            login = rs.getString("Login");
+            mensaje = rs.getString("Mensaje");
+            mensajes.add(new Mensaje(login, mensaje));
+            while(rs.next()){
+                login = rs.getString("Login");
+                mensaje = rs.getString("Mensaje");
+                mensajes.add(new Mensaje(login, mensaje));
+            }
+        }
+        cerrarResultSet(rs);
+
         //resultSet.last(); // ponemos el cursor sobre el utlimo
         //idUltimoMensaje = resultSet.getInt("M.ID");
         //actualizar(PONER_ULTIMO_MENSAJE +idUltimoMensaje +CONDICION_ULTIMO_MENSAJE +usuario.getId() +CONDICION_ULTIMO_MENSAJE2 + idChat);
-        return  resultSet;
+        return  mensajes;
     }
 /*
     private int getNumeroMensajesNoLeidos(Usuario usuario, int idChat){
@@ -305,28 +380,63 @@ public class GestoraBbdd {
     }
 */
 
-    //mostrara el nombre de todos los chat abiertos del usuario, todo numero de mensajes pendientes
+    //mostrara el nombre de todos los Chat abiertos del usuario, todo numero de mensajes pendientes
 
 
     /**
      *       Entradas: Usuario
      *      Precondiciones: conexion con la base de datos
-     *      Postcondiciones: resultset con todos los chats
+     *      Postcondiciones: lista con todos los chats
      * @param usuario
      * @return
      * @throws SQLException
      */
-    public ResultSet verChatsUsuario(Usuario usuario) throws SQLException { //ConMensajesPendientes
+    public List<Chat> verChatsUsuario(Usuario usuario) throws SQLException { //ConMensajesPendientes
         int idChat = 0;
         String nombreChat = null;
-        ResultSet resultSet =  hacerConsulta(VER_CHATS+ usuario.getId());
-        /*
-        while(resultSet.next()){
-            idChat = resultSet.getInt("CH.ID");
-            nombreChat = resultSet.getString("CH.Nombre");
+        List<Chat> chats = new ArrayList<Chat>();
+        ResultSet rs =  hacerConsulta(VER_CHATS+ usuario.getId());
+
+        if(rs.next()){
+            rs.first();
+            idChat = rs.getInt("id");
+            nombreChat = rs.getString("nombre");
+            chats.add(new Chat(idChat, nombreChat));
+            while(rs.next()){
+                idChat = rs.getInt("id");
+                nombreChat = rs.getString("nombre");
+                chats.add(new Chat(idChat, nombreChat));
+            }
         }
-        */
-        return resultSet;
+        cerrarResultSet(rs);
+        return chats;
+    }
+
+/**
+ *       Entradas: nada
+ *      Precondiciones: conexion con la base de datos
+ *      Postcondiciones: la conexion con la base de datos se va a cerrar
+        @trows SQLException
+ */
+
+    public void cerrarConexion() throws SQLException{
+
+        conexionBaseDatos.close();
+    }
+
+
+    /**
+     *       Entradas: ResultSet rs
+     *      Precondiciones: conexion con la base de datos
+     *      Postcondiciones: Se va a cerrar el resultset
+     @trows SQLException
+     */
+
+    public void cerrarResultSet(ResultSet rs) throws SQLException {
+
+        if (rs != null){
+            rs.close();
+        }
     }
 }
 

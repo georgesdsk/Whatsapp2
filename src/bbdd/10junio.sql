@@ -29,7 +29,7 @@ AS BEGIN RETURN(
 				)
 END		
 GO
-/****** Object:  Table [dbo].[Chat]    Script Date: 09/06/2021 9:51:31 ******/
+/****** Object:  Table [dbo].[Messenger]    Script Date: 09/06/2021 9:51:31 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -262,27 +262,41 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE or alter   PROCEDURE [dbo].[PR_CrearNuevoChat](@IDUsuario smallInt, @IDUsuarioInvitado smallInt, @Nombre varChar(30))
+
+
+CREATE or alter   PROCEDURE [dbo].[PR_CrearNuevoChat](@IDUsuario smallInt, @IDUsuarioInvitado smallInt, @Nombre varChar(30), @ID smallint OUTPUT)
 AS BEGIN
 
-	DECLARE @FechaActual smallDateTime = CURRENT_TIMESTAMP
+	
 	DECLARE @IDChatCreado smallint
 	
-	INSERT INTO Chat(Nombre, FechaCreacion) values (@Nombre, @FechaActual)-- se puede hacer un trigger que salte depsues de anhadir un nuevo chat que cree un nuevo 
-																		-- chatUsuario con el id del chat, pero se perderia el ID del USuario
+
+	INSERT INTO Chat(Nombre) values (@Nombre)-- se puede hacer un trigger que salte depsues de anhadir un nuevo messenger que cree un nuevo
+	SET @ID =  @@identity														-- chatUsuario con el id del messenger, pero se perderia el ID del USuario
 	
 	--FechaCreacion = @FechaActual AND Nombre = @Nombre)-- no se si aqui es con AS. Dudo que dos chats se creen con el mismo nombre en el mismo segundo
 
-	INSERT INTO ChatUsuario values (@IDUsuario, @@IDENTITY)
-	INSERT INTO ChatUsuario values (@IDUsuarioInvitado, @@IDENTITY)
-
+	INSERT INTO ChatUsuario(IDUsuario, IDChat) values (@IDUsuario, @ID)
+	INSERT INTO ChatUsuario(IDUsuario, IDChat) values (@IDUsuarioInvitado, @ID)
+	--RETURN 
 
 END
 
+
+BEGIN TRANSACTION
+	DECLARE @VA SMALLINT 
+	EXEC PR_CrearNuevoChat 102,1,'Chatillo7', @VA OUTPUT
+	PRINT @VA
+ROLLBACK
+
+
+select * from Chat
+select * from ChatUsuario
+
 			--begin transaction
-			--	INSERT INTO Chat(Nombre, FechaCreacion) values ('papa', CURRENT_TIMESTAMP)
+			--	INSERT INTO Messenger(Nombre, FechaCreacion) values ('papa', CURRENT_TIMESTAMP)
 			--	print @@IDENTITY
-			--	select * from Chat
+			--	select * from Messenger
 			--	ROLLBACK
 GO
 /****** Object:  StoredProcedure [dbo].[RegistrarUsuario]    Script Date: 09/06/2021 9:51:32 ******/
@@ -297,7 +311,7 @@ AS BEGIN
 GO
 
 go
-CREATE OR ALTER PROCEDURE DenegarSolicitud (@IDEmisor smallint, @IDReceptor smallint)
+CREATE OR ALTER PROCEDURE PR_DenegarSolicitud (@IDEmisor smallint, @IDReceptor smallint)
 AS BEGIN
 	DELETE  FROM Solicitud WHERE (@IDReceptor = IDReceptor AND @IDEmisor = IDEmisor) OR (@IDReceptor =IDEmisor  AND @IDEmisor = IDReceptor)   -- NO LIARSE CON EMISOR Y RECEPTOR, DOS COMPROBACIONES POR SI SE HAN ENVIADO LOS DOS LA PETICION
 END
@@ -347,6 +361,13 @@ GO
 
 go
 
+
+CREATE OR ALTER PROCEDURE PR_EnviarMensaje @mensaje varChar(240), @idUSuario smallInt, @idChat smallint
+AS BEGIN
+	INSERT INTO Mensaje(Mensaje, IDUsuario, IDChat) VALUES (@mensaje,@idUSuario, @idChat)
+END
+GO
+
 ALTER procedure [dbo].[FN_EnviarPeticionAmistad] @IDEmisor smallint, @IDReceptor smallint, @Resultado bit OUTPUT
 AS BEGIN 	
 			
@@ -366,32 +387,26 @@ AS BEGIN
 			END
 		
 END
-go
-
-SELECT IDEmisor FROM UsuarioAmigo WHERE ( 1 = IDReceptor AND 2 = IDEmisor) 
-             OR (1 = IDEmisor AND 2 = IDReceptor)
-
-
-			 insert into UsuarioAmigo values (1,2)
-			 
-select * from Solicitud
-
-select *from Usuario
-
-insert into Solicitud values (1,2)
-
-GO--PRIMERO HACER UNA Y LUEGO OTRA Y JUNTARLAS
-	SELECT UA.IDEmisor AS EMISOR, U.Login as Login FROM UsuarioAmigo AS UA
-                                   INNER JOIN USUARIO AS U 
-                                     ON U.ID = UA.IDEMISOR 
-									 INNER JOIN UsuarioAmigo AS UA2
-									ON UA2.
 GO
 
 
-select * from UsuarioAmigo
 
-SELECT *FROM Solicitud
+
+
+GO
+
+CREATE OR ALTER FUNCTION FN_Amigos (@IDUsuario smallint)
+RETURNS TABLE AS RETURN(
+						SELECT U.ID , U.Login FROM Usuario AS U
+                        INNER JOIN (SELECT IDEmisor AS ID from UsuarioAmigo
+						where IDReceptor = @IDUsuario
+						UNION SELECT IDReceptor AS ID from UsuarioAmigo
+						where IDEmisor = @IDUsuario
+						)  AS A ON A.ID = U.ID)
+
+       							
+GO
+
 
 CREATE LOGIN raul2 with password='raul2',
 DEFAULT_DATABASE=Whatsapp2
@@ -399,3 +414,5 @@ USE Whatsapp2
 CREATE USER raul2 FOR LOGIN raul2
 GRANT EXECUTE, INSERT, UPDATE, DELETE,
 SELECT TO raul2
+
+

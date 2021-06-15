@@ -79,13 +79,15 @@ public class InicioSesion {
             menu.errorAlMirarLogins();
         }
 
-        contrasenia = menu.validarConstrasenia();
+        contrasenia = menu.validarConstrasenia(); // no veo necesidad de crear un nuevo usuario ya que se le va a pasar la info a la bbdd directamente
 
         try {
             bbdd.nuevoUsuario(login, contrasenia);
         } catch (SQLException throwables) {
             menu.errorDeRegistro();
         }
+
+
     }
 
 
